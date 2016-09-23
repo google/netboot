@@ -126,7 +126,7 @@ func (s *Server) handleFile(w http.ResponseWriter, r *http.Request) {
 	if sz >= 0 {
 		w.Header().Set("Content-Length", strconv.FormatInt(sz, 10))
 	} else {
-		s.log("HTTP", "Unknown file size for %q, boot will be VERY slow (can your Booter provide file sizes?")
+		s.log("HTTP", "Unknown file size for %q, boot will be VERY slow (can your Booter provide file sizes?)", name)
 	}
 	if _, err = io.Copy(w, f); err != nil {
 		s.log("HTTP", "Copy of %q to %s (query %q) failed: %s", name, r.RemoteAddr, r.URL, err)
