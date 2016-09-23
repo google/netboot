@@ -105,7 +105,7 @@ sudo pixiecore api https://foo.example/pixiecore
 The endpoint you provide must implement the Pixiecore boot API, as
 described in the [API spec](README.api.md).
 
-You can find a sample API server implementation in the `example`
+You can find a sample API server implementation in the `api-example`
 subdirectory. The code is not production-grade, but gives a short
 illustration of how the protocol works by reimplementing a subset of
 Pixiecore's static mode as an API server.
