@@ -254,7 +254,16 @@ func (b *apibooter) ReadBootFile(id ID) (io.ReadCloser, int64, error) {
 	)
 	if u.Scheme == "file" {
 		// TODO serveFile
-		ret, err = os.Open(u.Path)
+		f, err := os.Open(u.Path)
+		if err != nil {
+			return nil, -1, err
+		}
+		fi, err := f.Stat()
+		if err != nil {
+			f.Close()
+			return nil, -1, err
+		}
+		ret, sz = f, fi.Size()
 	} else {
 		// urlStr will get reparsed by http.Get, which is mildly
 		// wasteful, but the code looks nicer than constructing a
