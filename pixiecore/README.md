@@ -53,11 +53,11 @@ from core-os.net each time a machine tries to boot. We can also
 download the files and use those:
 
 ```shell
-wget https://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz \
-wget https://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz \
+wget https://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz
+wget https://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz
 sudo pixiecore boot \
   coreos_production_pxe.vmlinuz \
-  coreos_production_pxe_image.cpio.gz
+  coreos_production_pxe_image.cpio.gz \
   --cmdline='coreos.autologin'
 ```
 
@@ -75,7 +75,7 @@ hostname to `pixiecore-test`, and serve it:
 wget -O my-cloud-config.yml https://goo.gl/7HzZf2
 sudo pixiecore boot \
   coreos_production_pxe.vmlinuz \
-  coreos_production_pxe_image.cpio.gz
+  coreos_production_pxe_image.cpio.gz \
   --cmdline='coreos.autologin cloud-config-url={{ ID "./my-cloud-config.yml" }}'
 ```
 
