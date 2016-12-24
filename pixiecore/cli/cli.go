@@ -70,7 +70,7 @@ func todo(msg string, args ...interface{}) {
 func serverConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolP("debug", "d", false, "Log more things that aren't directly related to booting a recognized client")
 	cmd.Flags().BoolP("log-timestamps", "t", false, "Add a timestamp to each log line")
-	cmd.Flags().StringP("listen-addr", "l", "", "IPv4 address to listen on")
+	cmd.Flags().StringP("listen-addr", "l", "0.0.0.0", "IPv4 address to listen on")
 	cmd.Flags().IntP("port", "p", 80, "Port to listen on for HTTP")
 	cmd.Flags().Int("status-port", 0, "HTTP port for status information (can be the same as --port)")
 	cmd.Flags().Bool("dhcp-no-bind", false, "Handle DHCP traffic without binding to the DHCP server port")
