@@ -3,7 +3,6 @@
 set -x
 set -e
 
-mkdir -p /tmp/go/src/go.universe.tf
 if [ -d /tmp/stuff/.git ]; then
     echo "Building from local dev copy"
     mkdir -p /tmp/go/src/go.universe.tf
