@@ -6,7 +6,7 @@ set -e
 if [ -d /tmp/stuff/.git ]; then
     echo "Building from local dev copy"
     mkdir -p /tmp/go/src/go.universe.tf
-    cp -R /tmp/stuff /tmp/go/src/go.universe.tf/netboot
+    mv -v /tmp/stuff /tmp/go/src/go.universe.tf/netboot
 else
     echo "Building from git checkout"
 fi
