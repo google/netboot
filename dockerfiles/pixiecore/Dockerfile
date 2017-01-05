@@ -18,6 +18,9 @@ RUN set -x;                                                                     
         glide                                                                   \
         musl-dev;                                                               \
                                                                                 \
+    export GOPATH="$PIXIECORE_SANDBOX"/go;                                      \
+    export GLIDE_HOME="$PIXIECORE_SANDBOX";                                     \
+                                                                                \
     if [ -d "$PIXIECORE_CONTEXT"/cmd/pixiecore ]; then                          \
         echo "Building from local dev copy";                                    \
         mkdir -p /tmp/sandbox/go/src/go.universe.tf;                            \
@@ -26,8 +29,6 @@ RUN set -x;                                                                     
         echo "Building from git checkout";                                      \
     fi;                                                                         \
                                                                                 \
-    export GOPATH="$PIXIECORE_SANDBOX"/go;                                      \
-    export GLIDE_HOME="$PIXIECORE_SANDBOX";                                     \
     go get -v -d go.universe.tf/netboot/cmd/pixiecore;                          \
     cd /tmp/sandbox/go/src/go.universe.tf/netboot;                              \
     glide install;                                                              \
