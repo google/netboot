@@ -18,8 +18,17 @@ RUN set -x;                                                                     
         glide                                                                   \
         musl-dev;                                                               \
                                                                                 \
+    # Pixiecore assets                                                          \
+    NAMESPACE=go.universe.tf;                                                   \
+    REPO=netboot;                                                               \
+    PKG=cmd/pixiecore;                                                          \
+                                                                                \
     export GOPATH="$PIXIECORE_SANDBOX"/go;                                      \
     export GLIDE_HOME="$PIXIECORE_SANDBOX";                                     \
+                                                                                \
+    NAMESPACE_PATH="$GOPATH/src/$NAMESPACE";                                    \
+    REPO_PATH="$NAMESPACE_PATH/$REPO";                                          \
+    PKG_PATH="$REPO_PATH/$PKG";                                                 \
                                                                                 \
     if [ -d "$PIXIECORE_CONTEXT"/cmd/pixiecore ]; then                          \
         echo "Building from local dev copy";                                    \
