@@ -12,16 +12,15 @@ else
 fi
 
 export GOPATH=/tmp/go
-apk -U add ca-certificates git go musl-dev
+apk -U add ca-certificates git go glide musl-dev
 apk upgrade
-go get -v github.com/Masterminds/glide
 go get -v -d go.universe.tf/netboot/cmd/pixiecore
 cd /tmp/go/src/go.universe.tf/netboot
-/tmp/go/bin/glide install
-go test $(/tmp/go/bin/glide nv)
+glide install
+go test $(glide nv)
 cd cmd/pixiecore
 go build .
 cp ./pixiecore /pixiecore
 cd /
-apk del git go musl-dev
+apk del git go glide musl-dev
 rm -rf /tmp/go /tmp/stuff /root/.glide /usr/lib/go /var/cache/apk/*
