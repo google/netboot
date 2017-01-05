@@ -17,20 +17,20 @@ RUN set -x;                                                                     
                                                                                 \
     if [ -d /tmp/sandbox/stuff/cmd/pixiecore ]; then                            \
         echo "Building from local dev copy";                                    \
-        mkdir -p /tmp/go/src/go.universe.tf;                                    \
-        mv -v /tmp/sandbox/stuff /tmp/go/src/go.universe.tf/netboot;            \
+        mkdir -p /tmp/sandbox/go/src/go.universe.tf;                            \
+        mv -v /tmp/sandbox/stuff /tmp/sandbox/go/src/go.universe.tf/netboot;    \
     else                                                                        \
         echo "Building from git checkout";                                      \
     fi;                                                                         \
                                                                                 \
-    export GOPATH=/tmp/go;                                                      \
+    export GOPATH=/tmp/sandbox/go;                                              \
     export GLIDE_HOME=/tmp/sandbox;                                             \
     go get -v -d go.universe.tf/netboot/cmd/pixiecore;                          \
-    cd /tmp/go/src/go.universe.tf/netboot;                                      \
+    cd /tmp/sandbox/go/src/go.universe.tf/netboot;                              \
     glide install;                                                              \
     go test $(glide nv);                                                        \
     GOBIN=/ go install ./cmd/pixiecore;                                         \
     apk del --purge .build-deps;                                                \
-    rm -rf /tmp/go /tmp/sandbox/stuff /tmp/sandbox /var/cache/apk/*;
+    rm -rf /tmp/sandbox/go /tmp/sandbox/stuff /tmp/sandbox /var/cache/apk/*;
 
 ENTRYPOINT ["/pixiecore"]
