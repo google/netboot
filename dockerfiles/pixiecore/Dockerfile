@@ -43,6 +43,7 @@ RUN set -x;                                                                     
     glide install;                                                              \
     go test $(glide nv);                                                        \
     GOBIN=/usr/local/bin go install ./"$PKG";                                   \
+                                                                                \
     apk del --purge .build-deps;                                                \
     rm -rf "$PIXIECORE_SANDBOX" /var/cache/apk/*;
 
