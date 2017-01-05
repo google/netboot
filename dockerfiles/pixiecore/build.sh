@@ -12,7 +12,6 @@ else
 fi
 
 export GOPATH=/tmp/go
-echo "http://dl-4.alpinelinux.org/alpine/edge/community" >>/etc/apk/repositories
 apk -U add ca-certificates git go gcc musl-dev
 apk upgrade
 go get -v github.com/Masterminds/glide
