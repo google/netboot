@@ -24,7 +24,7 @@ RUN set -x;                                                                     
     fi;                                                                         \
                                                                                 \
     export GOPATH=/tmp/go;                                                      \
-    export GLIDE_HOME=/tmp/go;                                                  \
+    export GLIDE_HOME=/tmp/sandbox;                                             \
     go get -v -d go.universe.tf/netboot/cmd/pixiecore;                          \
     cd /tmp/go/src/go.universe.tf/netboot;                                      \
     glide install;                                                              \
