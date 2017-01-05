@@ -3,8 +3,8 @@
 set -x
 set -e
 
-apk -U add ca-certificates git go glide musl-dev
-apk upgrade
+apk upgrade --update-cache
+apk add ca-certificates git go glide musl-dev
 
 if [ -d /tmp/stuff/.git ]; then
     echo "Building from local dev copy"
