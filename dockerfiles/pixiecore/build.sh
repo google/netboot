@@ -5,7 +5,11 @@ set -e
 
 apk upgrade --update-cache
 apk add ca-certificates
-apk add --virtual .build-deps git go glide musl-dev
+apk add --virtual .build-deps  \
+    git                        \
+    go                         \
+    glide                      \
+    musl-dev
 
 if [ -d /tmp/stuff/.git ]; then
     echo "Building from local dev copy"
