@@ -4,7 +4,8 @@ set -x
 set -e
 
 apk upgrade --update-cache
-apk add ca-certificates git go glide musl-dev
+apk add ca-certificates
+apk add --virtual .build-deps git go glide musl-dev
 
 if [ -d /tmp/stuff/.git ]; then
     echo "Building from local dev copy"
@@ -22,5 +23,5 @@ glide install
 go test $(glide nv)
 GOBIN=/ go install ./cmd/pixiecore
 cd /
-apk del --purge git go glide musl-dev
+apk del --purge .build-deps
 rm -rf /tmp/go /tmp/stuff /var/cache/apk/*
