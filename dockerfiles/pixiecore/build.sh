@@ -11,7 +11,7 @@ apk add --virtual .build-deps  \
     glide                      \
     musl-dev
 
-if [ -d /tmp/stuff/.git ]; then
+if [ -d /tmp/stuff/cmd/pixiecore ]; then
     echo "Building from local dev copy"
     mkdir -p /tmp/go/src/go.universe.tf
     mv -v /tmp/stuff /tmp/go/src/go.universe.tf/netboot
