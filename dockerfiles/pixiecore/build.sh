@@ -3,6 +3,9 @@
 set -x
 set -e
 
+apk -U add ca-certificates git go glide musl-dev
+apk upgrade
+
 if [ -d /tmp/stuff/.git ]; then
     echo "Building from local dev copy"
     mkdir -p /tmp/go/src/go.universe.tf
@@ -13,8 +16,6 @@ fi
 
 export GOPATH=/tmp/go
 export GLIDE_HOME=/tmp/go
-apk -U add ca-certificates git go glide musl-dev
-apk upgrade
 go get -v -d go.universe.tf/netboot/cmd/pixiecore
 cd /tmp/go/src/go.universe.tf/netboot
 glide install
