@@ -2,7 +2,7 @@ FROM alpine:edge
 
 MAINTAINER David Anderson <dave@natulte.net>
 
-COPY . /tmp/stuff
+COPY . /tmp/sandbox/stuff
 
 RUN set -x;                                                                     \
     set -e;                                                                     \
@@ -15,10 +15,10 @@ RUN set -x;                                                                     
         glide                                                                   \
         musl-dev;                                                               \
                                                                                 \
-    if [ -d /tmp/stuff/cmd/pixiecore ]; then                                    \
+    if [ -d /tmp/sandbox/stuff/cmd/pixiecore ]; then                            \
         echo "Building from local dev copy";                                    \
         mkdir -p /tmp/go/src/go.universe.tf;                                    \
-        mv -v /tmp/stuff /tmp/go/src/go.universe.tf/netboot;                    \
+        mv -v /tmp/sandbox/stuff /tmp/go/src/go.universe.tf/netboot;            \
     else                                                                        \
         echo "Building from git checkout";                                      \
     fi;                                                                         \
@@ -31,6 +31,6 @@ RUN set -x;                                                                     
     go test $(glide nv);                                                        \
     GOBIN=/ go install ./cmd/pixiecore;                                         \
     apk del --purge .build-deps;                                                \
-    rm -rf /tmp/go /tmp/stuff /var/cache/apk/*;
+    rm -rf /tmp/go /tmp/sandbox/stuff /tmp/sandbox /var/cache/apk/*;
 
 ENTRYPOINT ["/pixiecore"]
