@@ -31,6 +31,6 @@ RUN set -x;                                                                     
     go test $(glide nv);                                                        \
     GOBIN=/ go install ./cmd/pixiecore;                                         \
     apk del --purge .build-deps;                                                \
-    rm -rf /tmp/sandbox/go /tmp/sandbox/stuff /tmp/sandbox /var/cache/apk/*;
+    rm -rf /tmp/sandbox /var/cache/apk/*;
 
 ENTRYPOINT ["/pixiecore"]
