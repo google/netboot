@@ -12,6 +12,7 @@ else
 fi
 
 export GOPATH=/tmp/go
+export GLIDE_HOME=/tmp/go
 apk -U add ca-certificates git go glide musl-dev
 apk upgrade
 go get -v -d go.universe.tf/netboot/cmd/pixiecore
@@ -23,4 +24,4 @@ go build .
 cp ./pixiecore /pixiecore
 cd /
 apk del git go glide musl-dev
-rm -rf /tmp/go /tmp/stuff /root/.glide /usr/lib/go /var/cache/apk/*
+rm -rf /tmp/go /tmp/stuff /usr/lib/go /var/cache/apk/*
