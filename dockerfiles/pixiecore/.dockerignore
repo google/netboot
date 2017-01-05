@@ -1,0 +1,4 @@
+.dockerignore
+# TODO: don't uncomment the next line until quay.io fixes how they handle
+# .dockerignore that include Dockerfile (already notified them)
+#Dockerfile
