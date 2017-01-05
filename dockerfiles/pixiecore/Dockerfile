@@ -35,7 +35,7 @@ RUN set -x;                                                                     
         mkdir -p "$NAMESPACE_PATH";                                             \
         mv -v "$PIXIECORE_CONTEXT" "$REPO_PATH";                                \
     else                                                                        \
-        echo "Building from git checkout";                                      \
+        echo "Building from upstream git repo";                                 \
     fi;                                                                         \
                                                                                 \
     go get -v -d "$NAMESPACE/$REPO/$PKG";                                       \
