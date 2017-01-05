@@ -29,8 +29,8 @@ RUN set -x;                                                                     
     cd /tmp/sandbox/go/src/go.universe.tf/netboot;                              \
     glide install;                                                              \
     go test $(glide nv);                                                        \
-    GOBIN=/ go install ./cmd/pixiecore;                                         \
+    GOBIN=/usr/local/bin go install ./cmd/pixiecore;                            \
     apk del --purge .build-deps;                                                \
     rm -rf /tmp/sandbox /var/cache/apk/*;
 
-ENTRYPOINT ["/pixiecore"]
+ENTRYPOINT ["/usr/local/bin/pixiecore"]
