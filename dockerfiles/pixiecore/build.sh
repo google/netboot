@@ -23,5 +23,5 @@ cd cmd/pixiecore
 go build .
 cp ./pixiecore /pixiecore
 cd /
-apk del git go glide musl-dev
-rm -rf /tmp/go /tmp/stuff /usr/lib/go /var/cache/apk/*
+apk del --purge git go glide musl-dev
+rm -rf /tmp/go /tmp/stuff /var/cache/apk/*
