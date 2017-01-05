@@ -26,6 +26,5 @@ cd /tmp/go/src/go.universe.tf/netboot
 glide install
 go test $(glide nv)
 GOBIN=/ go install ./cmd/pixiecore
-cd /
 apk del --purge .build-deps
 rm -rf /tmp/go /tmp/stuff /var/cache/apk/*
