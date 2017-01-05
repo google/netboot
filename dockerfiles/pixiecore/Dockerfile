@@ -30,19 +30,19 @@ RUN set -x;                                                                     
     REPO_PATH="$NAMESPACE_PATH/$REPO";                                          \
     PKG_PATH="$REPO_PATH/$PKG";                                                 \
                                                                                 \
-    if [ -d "$PIXIECORE_CONTEXT"/cmd/pixiecore ]; then                          \
+    if [ -d "$PIXIECORE_CONTEXT"/"$PKG" ]; then                                 \
         echo "Building from local dev copy";                                    \
-        mkdir -p /tmp/sandbox/go/src/go.universe.tf;                            \
-        mv -v "$PIXIECORE_CONTEXT" /tmp/sandbox/go/src/go.universe.tf/netboot;  \
+        mkdir -p "$NAMESPACE_PATH";                                             \
+        mv -v "$PIXIECORE_CONTEXT" "$REPO_PATH";                                \
     else                                                                        \
         echo "Building from git checkout";                                      \
     fi;                                                                         \
                                                                                 \
-    go get -v -d go.universe.tf/netboot/cmd/pixiecore;                          \
-    cd /tmp/sandbox/go/src/go.universe.tf/netboot;                              \
+    go get -v -d "$NAMESPACE/$REPO/$PKG";                                       \
+    cd "$REPO_PATH";                                                            \
     glide install;                                                              \
     go test $(glide nv);                                                        \
-    GOBIN=/usr/local/bin go install ./cmd/pixiecore;                            \
+    GOBIN=/usr/local/bin go install ./"$PKG";                                   \
     apk del --purge .build-deps;                                                \
     rm -rf "$PIXIECORE_SANDBOX" /var/cache/apk/*;
 
