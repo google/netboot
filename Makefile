@@ -5,7 +5,7 @@ none:
 	@echo "This makefile is just a shortcut for building docker containers."
 
 pixiecore:
-	sudo docker build -t danderson/pixiecore -f dockerfiles/pixiecore/Dockerfile .
+	sudo docker build --tag danderson/pixiecore --file dockerfiles/pixiecore/Dockerfile .
 
 pixiecore-git:
-	sudo docker build -t danderson/pixiecore dockerfiles/pixiecore
+	sudo docker build --tag danderson/pixiecore dockerfiles/pixiecore
