@@ -157,6 +157,7 @@ func serverFromFlags(cmd *cobra.Command) *pixiecore.Server {
 	}
 	if ipxeEFI64 != "" {
 		ret.Ipxe[pixiecore.FirmwareEFI64] = mustFile(ipxeEFI64)
+		ret.Ipxe[pixiecore.FirmwareEFIBC] = mustFile(ipxeEFI64)
 	}
 
 	if timestamps {
