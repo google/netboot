@@ -125,15 +125,15 @@ const (
 	// Note the values match the values from RFC4578.
 	FirmwareX86PC Firmware = 0 // "Classic" x86 BIOS with PXE/UNDI support.
 	FirmwareEFI32          = 6 // 32-bit x86 processor running EFI
-	FirmwareEFIBC          = 7 // 64-bit x86 processor running EFI
-	FirmwareEFI64          = 9 // 64-bit x86 processor running EFI
+	FirmwareEFI64          = 7 // 64-bit x86 processor running EFI
+	FirmwareEFIBC          = 9 // 64-bit x86 processor running EFI
 )
 
 var fwToArch = map[Firmware]Architecture{
 	FirmwareX86PC: ArchIA32,
 	FirmwareEFI32: ArchIA32,
-	FirmwareEFIBC: ArchX64,
 	FirmwareEFI64: ArchX64,
+	FirmwareEFIBC: ArchX64,
 }
 
 // A Server boots machines using a Booter.
