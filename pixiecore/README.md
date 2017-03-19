@@ -172,7 +172,7 @@ sudo docker run \
 
 Pixiecore was used alongside
 [waitron](https://github.com/jhaals/waitron) in a
-[https://youtu.be/QyGHZ2HCwqY?t=440](presentation at the OpenStack
+[presentation](https://youtu.be/QyGHZ2HCwqY?t=440) at the OpenStack
 summit in 2016).
 
 If you use Pixiecore, we'd love to hear about it, and know more about
