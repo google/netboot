@@ -1,0 +1,427 @@
+No.     Time        Source                Destination           Protocol Length Info
+      1 0.000000    fe80::2ad2:44ff:fe85:7b1d ff02::1:2             DHCPv6   161    Solicit XID: 0x958a89 CID: 000474c475b0d742d4ca3681fe4bc6f66c24 
+
+Frame 1: 161 bytes on wire (1288 bits), 161 bytes captured (1288 bits)
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Mar 31, 2017 13:57:48.861433000 BST
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1490965068.861433000 seconds
+    [Time delta from previous captured frame: 0.000000000 seconds]
+    [Time delta from previous displayed frame: 0.000000000 seconds]
+    [Time since reference or first frame: 0.000000000 seconds]
+    Frame Number: 1
+    Frame Length: 161 bytes (1288 bits)
+    Capture Length: 161 bytes (1288 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ipv6:ipv6.nxt:udp:dhcpv6]
+    [Coloring Rule Name: UDP]
+    [Coloring Rule String: udp]
+Ethernet II, Src: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d), Dst: IPv6mcast_01:00:02 (33:33:00:01:00:02)
+    Destination: IPv6mcast_01:00:02 (33:33:00:01:00:02)
+        Address: IPv6mcast_01:00:02 (33:33:00:01:00:02)
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...1 .... .... .... .... = IG bit: Group address (multicast/broadcast)
+    Source: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        Address: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv6 (0x86dd)
+Internet Protocol Version 6, Src: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d), Dst: ff02::1:2 (ff02::1:2)
+    0110 .... = Version: 6
+        [0110 .... = This field makes the filter "ip.version == 6" possible: 6]
+    .... 0000 0000 .... .... .... .... .... = Traffic class: 0x00000000
+        .... 0000 00.. .... .... .... .... .... = Differentiated Services Field: Default (0x00000000)
+        .... .... ..0. .... .... .... .... .... = ECN-Capable Transport (ECT): Not set
+        .... .... ...0 .... .... .... .... .... = ECN-CE: Not set
+    .... .... .... 1100 1010 1001 0111 0111 = Flowlabel: 0x000ca977
+    Payload length: 107
+    Next header: UDP (17)
+    Hop limit: 1
+    Source: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d)
+    [Source SA MAC: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)]
+    Destination: ff02::1:2 (ff02::1:2)
+    [Source GeoIP: Unknown]
+    [Destination GeoIP: Unknown]
+User Datagram Protocol, Src Port: 546 (546), Dst Port: 547 (547)
+    Source Port: 546 (546)
+    Destination Port: 547 (547)
+    Length: 107
+    Checksum: 0xdae6 [validation disabled]
+        [Good Checksum: False]
+        [Bad Checksum: False]
+    [Stream index: 0]
+DHCPv6
+    Message type: Solicit (1)
+    Transaction ID: 0x958a89
+    Client Identifier
+        Option: Client Identifier (1)
+        Length: 18
+        Value: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID Type: link-layer address (old) (4)
+        Hardware type: Unknown (29892)
+        Link-layer address: 75b0d742d4ca3681fe4bc6f66c24
+    Option Request
+        Option: Option Request (6)
+        Length: 10
+        Value: 00170018001700180001
+        Requested Option code: DNS recursive name server (23)
+        Requested Option code: Domain Search List (24)
+        Requested Option code: DNS recursive name server (23)
+        Requested Option code: Domain Search List (24)
+        Requested Option code: Client Identifier (1)
+    Elapsed time
+        Option: Elapsed time (8)
+        Length: 2
+        Value: 0000
+        Elapsed time: 0 ms
+    Fully Qualified Domain Name
+        Option: Fully Qualified Domain Name (39)
+        Length: 33
+        Value: 010e6c756369642d6e6f6e73656e73650c6170706c696564...
+        0000 0... = Reserved: 0x00
+        .... .0.. = N bit: Server should perform DNS updates
+        .... ..0. = O bit: Server has not overridden client's S bit preference
+        .... ...1 = S bit: Server should perform forward DNS updates
+        Client FQDN: lucid-nonsense.appliedlogic.ca
+    Identity Association for Non-temporary Address
+        Option: Identity Association for Non-temporary Address (3)
+        Length: 12
+        Value: 44857b1d00000e1000001518
+        IAID: 44857b1d
+        T1: 3600
+        T2: 5400
+
+No.     Time        Source                Destination           Protocol Length Info
+      2 0.000371    fe80::8a51:fbff:fe6b:d76d fe80::2ad2:44ff:fe85:7b1d DHCPv6   226    Advertise XID: 0x958a89 IAA: 2001:db8:1:1::99 CID: 000474c475b0d742d4ca3681fe4bc6f66c24 
+
+Frame 2: 226 bytes on wire (1808 bits), 226 bytes captured (1808 bits)
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Mar 31, 2017 13:57:48.861804000 BST
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1490965068.861804000 seconds
+    [Time delta from previous captured frame: 0.000371000 seconds]
+    [Time delta from previous displayed frame: 0.000371000 seconds]
+    [Time since reference or first frame: 0.000371000 seconds]
+    Frame Number: 2
+    Frame Length: 226 bytes (1808 bits)
+    Capture Length: 226 bytes (1808 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ipv6:ipv6.nxt:udp:dhcpv6]
+    [Coloring Rule Name: UDP]
+    [Coloring Rule String: udp]
+Ethernet II, Src: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d), Dst: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+    Destination: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        Address: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d)
+        Address: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv6 (0x86dd)
+Internet Protocol Version 6, Src: fe80::8a51:fbff:fe6b:d76d (fe80::8a51:fbff:fe6b:d76d), Dst: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d)
+    0110 .... = Version: 6
+        [0110 .... = This field makes the filter "ip.version == 6" possible: 6]
+    .... 0000 0000 .... .... .... .... .... = Traffic class: 0x00000000
+        .... 0000 00.. .... .... .... .... .... = Differentiated Services Field: Default (0x00000000)
+        .... .... ..0. .... .... .... .... .... = ECN-Capable Transport (ECT): Not set
+        .... .... ...0 .... .... .... .... .... = ECN-CE: Not set
+    .... .... .... 1001 0100 1000 0000 0001 = Flowlabel: 0x00094801
+    Payload length: 172
+    Next header: UDP (17)
+    Hop limit: 64
+    Source: fe80::8a51:fbff:fe6b:d76d (fe80::8a51:fbff:fe6b:d76d)
+    [Source SA MAC: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d)]
+    Destination: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d)
+    [Destination SA MAC: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)]
+    [Source GeoIP: Unknown]
+    [Destination GeoIP: Unknown]
+User Datagram Protocol, Src Port: 547 (547), Dst Port: 546 (546)
+    Source Port: 547 (547)
+    Destination Port: 546 (546)
+    Length: 172
+    Checksum: 0x435f [validation disabled]
+        [Good Checksum: False]
+        [Bad Checksum: False]
+    [Stream index: 1]
+DHCPv6
+    Message type: Advertise (2)
+    Transaction ID: 0x958a89
+    Identity Association for Non-temporary Address
+        Option: Identity Association for Non-temporary Address (3)
+        Length: 40
+        Value: 44857b1d00000e1000001c200005001820010db800010001...
+        IAID: 44857b1d
+        T1: 3600
+        T2: 7200
+        IA Address
+            Option: IA Address (5)
+            Length: 24
+            Value: 20010db800010001000000000000009900093a8000278d00
+            IPv6 address: 2001:db8:1:1::99 (2001:db8:1:1::99)
+            Preferred lifetime: 604800
+            Valid lifetime: 2592000
+    Client Identifier
+        Option: Client Identifier (1)
+        Length: 18
+        Value: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID Type: link-layer address (old) (4)
+        Hardware type: Unknown (29892)
+        Link-layer address: 75b0d742d4ca3681fe4bc6f66c24
+    Server Identifier
+        Option: Server Identifier (2)
+        Length: 14
+        Value: 00010001207106ee8851fb6bd76d
+        DUID: 00010001207106ee8851fb6bd76d
+        DUID Type: link-layer address plus time (1)
+        Hardware type: Ethernet (1)
+        DUID Time: Mar 31, 2017 13:24:14.000000000 BST
+        Link-layer address: 88:51:fb:6b:d7:6d
+    DNS recursive name server
+        Option: DNS recursive name server (23)
+        Length: 16
+        Value: 20010db8000100010000000000000201
+         1 DNS server address: 2001:db8:1:1::201 (2001:db8:1:1::201)
+    Domain Search List
+        Option: Domain Search List (24)
+        Length: 14
+        Value: 08696e7465726e616c036c616e00
+        DNS Domain Search List
+        Domain Search List FQDN: internal.lan
+    DNS recursive name server
+        Option: DNS recursive name server (23)
+        Length: 16
+        Value: 20010db8000100010000000000000201
+         1 DNS server address: 2001:db8:1:1::201 (2001:db8:1:1::201)
+    Domain Search List
+        Option: Domain Search List (24)
+        Length: 14
+        Value: 08696e7465726e616c036c616e00
+        DNS Domain Search List
+        Domain Search List FQDN: internal.lan
+
+No.     Time        Source                Destination           Protocol Length Info
+      3 1.061280    fe80::2ad2:44ff:fe85:7b1d ff02::1:2             DHCPv6   207    Request XID: 0xfa052 CID: 000474c475b0d742d4ca3681fe4bc6f66c24 IAA: 2001:db8:1:1::99 
+
+Frame 3: 207 bytes on wire (1656 bits), 207 bytes captured (1656 bits)
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Mar 31, 2017 13:57:49.922713000 BST
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1490965069.922713000 seconds
+    [Time delta from previous captured frame: 1.060909000 seconds]
+    [Time delta from previous displayed frame: 1.060909000 seconds]
+    [Time since reference or first frame: 1.061280000 seconds]
+    Frame Number: 3
+    Frame Length: 207 bytes (1656 bits)
+    Capture Length: 207 bytes (1656 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ipv6:ipv6.nxt:udp:dhcpv6]
+    [Coloring Rule Name: UDP]
+    [Coloring Rule String: udp]
+Ethernet II, Src: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d), Dst: IPv6mcast_01:00:02 (33:33:00:01:00:02)
+    Destination: IPv6mcast_01:00:02 (33:33:00:01:00:02)
+        Address: IPv6mcast_01:00:02 (33:33:00:01:00:02)
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...1 .... .... .... .... = IG bit: Group address (multicast/broadcast)
+    Source: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        Address: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv6 (0x86dd)
+Internet Protocol Version 6, Src: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d), Dst: ff02::1:2 (ff02::1:2)
+    0110 .... = Version: 6
+        [0110 .... = This field makes the filter "ip.version == 6" possible: 6]
+    .... 0000 0000 .... .... .... .... .... = Traffic class: 0x00000000
+        .... 0000 00.. .... .... .... .... .... = Differentiated Services Field: Default (0x00000000)
+        .... .... ..0. .... .... .... .... .... = ECN-Capable Transport (ECT): Not set
+        .... .... ...0 .... .... .... .... .... = ECN-CE: Not set
+    .... .... .... 1100 1010 1001 0111 0111 = Flowlabel: 0x000ca977
+    Payload length: 153
+    Next header: UDP (17)
+    Hop limit: 1
+    Source: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d)
+    [Source SA MAC: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)]
+    Destination: ff02::1:2 (ff02::1:2)
+    [Source GeoIP: Unknown]
+    [Destination GeoIP: Unknown]
+User Datagram Protocol, Src Port: 546 (546), Dst Port: 547 (547)
+    Source Port: 546 (546)
+    Destination Port: 547 (547)
+    Length: 153
+    Checksum: 0x4743 [validation disabled]
+        [Good Checksum: False]
+        [Bad Checksum: False]
+    [Stream index: 0]
+DHCPv6
+    Message type: Request (3)
+    Transaction ID: 0x0fa052
+    Client Identifier
+        Option: Client Identifier (1)
+        Length: 18
+        Value: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID Type: link-layer address (old) (4)
+        Hardware type: Unknown (29892)
+        Link-layer address: 75b0d742d4ca3681fe4bc6f66c24
+    Server Identifier
+        Option: Server Identifier (2)
+        Length: 14
+        Value: 00010001207106ee8851fb6bd76d
+        DUID: 00010001207106ee8851fb6bd76d
+        DUID Type: link-layer address plus time (1)
+        Hardware type: Ethernet (1)
+        DUID Time: Mar 31, 2017 13:24:14.000000000 BST
+        Link-layer address: 88:51:fb:6b:d7:6d
+    Option Request
+        Option: Option Request (6)
+        Length: 10
+        Value: 00170018001700180001
+        Requested Option code: DNS recursive name server (23)
+        Requested Option code: Domain Search List (24)
+        Requested Option code: DNS recursive name server (23)
+        Requested Option code: Domain Search List (24)
+        Requested Option code: Client Identifier (1)
+    Elapsed time
+        Option: Elapsed time (8)
+        Length: 2
+        Value: 0000
+        Elapsed time: 0 ms
+    Fully Qualified Domain Name
+        Option: Fully Qualified Domain Name (39)
+        Length: 33
+        Value: 010e6c756369642d6e6f6e73656e73650c6170706c696564...
+        0000 0... = Reserved: 0x00
+        .... .0.. = N bit: Server should perform DNS updates
+        .... ..0. = O bit: Server has not overridden client's S bit preference
+        .... ...1 = S bit: Server should perform forward DNS updates
+        Client FQDN: lucid-nonsense.appliedlogic.ca
+    Identity Association for Non-temporary Address
+        Option: Identity Association for Non-temporary Address (3)
+        Length: 40
+        Value: 44857b1d00000e10000015180005001820010db800010001...
+        IAID: 44857b1d
+        T1: 3600
+        T2: 5400
+        IA Address
+            Option: IA Address (5)
+            Length: 24
+            Value: 20010db800010001000000000000009900001c2000001d4c
+            IPv6 address: 2001:db8:1:1::99 (2001:db8:1:1::99)
+            Preferred lifetime: 7200
+            Valid lifetime: 7500
+
+No.     Time        Source                Destination           Protocol Length Info
+      4 1.061709    fe80::8a51:fbff:fe6b:d76d fe80::2ad2:44ff:fe85:7b1d DHCPv6   226    Reply XID: 0xfa052 IAA: 2001:db8:1:1::99 CID: 000474c475b0d742d4ca3681fe4bc6f66c24 
+
+Frame 4: 226 bytes on wire (1808 bits), 226 bytes captured (1808 bits)
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Mar 31, 2017 13:57:49.923142000 BST
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1490965069.923142000 seconds
+    [Time delta from previous captured frame: 0.000429000 seconds]
+    [Time delta from previous displayed frame: 0.000429000 seconds]
+    [Time since reference or first frame: 1.061709000 seconds]
+    Frame Number: 4
+    Frame Length: 226 bytes (1808 bits)
+    Capture Length: 226 bytes (1808 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ipv6:ipv6.nxt:udp:dhcpv6]
+    [Coloring Rule Name: UDP]
+    [Coloring Rule String: udp]
+Ethernet II, Src: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d), Dst: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+    Destination: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        Address: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d)
+        Address: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv6 (0x86dd)
+Internet Protocol Version 6, Src: fe80::8a51:fbff:fe6b:d76d (fe80::8a51:fbff:fe6b:d76d), Dst: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d)
+    0110 .... = Version: 6
+        [0110 .... = This field makes the filter "ip.version == 6" possible: 6]
+    .... 0000 0000 .... .... .... .... .... = Traffic class: 0x00000000
+        .... 0000 00.. .... .... .... .... .... = Differentiated Services Field: Default (0x00000000)
+        .... .... ..0. .... .... .... .... .... = ECN-Capable Transport (ECT): Not set
+        .... .... ...0 .... .... .... .... .... = ECN-CE: Not set
+    .... .... .... 1001 0100 1000 0000 0001 = Flowlabel: 0x00094801
+    Payload length: 172
+    Next header: UDP (17)
+    Hop limit: 64
+    Source: fe80::8a51:fbff:fe6b:d76d (fe80::8a51:fbff:fe6b:d76d)
+    [Source SA MAC: HewlettP_6b:d7:6d (88:51:fb:6b:d7:6d)]
+    Destination: fe80::2ad2:44ff:fe85:7b1d (fe80::2ad2:44ff:fe85:7b1d)
+    [Destination SA MAC: LcfcHefe_85:7b:1d (28:d2:44:85:7b:1d)]
+    [Source GeoIP: Unknown]
+    [Destination GeoIP: Unknown]
+User Datagram Protocol, Src Port: 547 (547), Dst Port: 546 (546)
+    Source Port: 547 (547)
+    Destination Port: 546 (546)
+    Length: 172
+    Checksum: 0x435f [validation disabled]
+        [Good Checksum: False]
+        [Bad Checksum: False]
+    [Stream index: 1]
+DHCPv6
+    Message type: Reply (7)
+    Transaction ID: 0x0fa052
+    Identity Association for Non-temporary Address
+        Option: Identity Association for Non-temporary Address (3)
+        Length: 40
+        Value: 44857b1d00000e1000001c200005001820010db800010001...
+        IAID: 44857b1d
+        T1: 3600
+        T2: 7200
+        IA Address
+            Option: IA Address (5)
+            Length: 24
+            Value: 20010db800010001000000000000009900093a8000278d00
+            IPv6 address: 2001:db8:1:1::99 (2001:db8:1:1::99)
+            Preferred lifetime: 604800
+            Valid lifetime: 2592000
+    Client Identifier
+        Option: Client Identifier (1)
+        Length: 18
+        Value: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID: 000474c475b0d742d4ca3681fe4bc6f66c24
+        DUID Type: link-layer address (old) (4)
+        Hardware type: Unknown (29892)
+        Link-layer address: 75b0d742d4ca3681fe4bc6f66c24
+    Server Identifier
+        Option: Server Identifier (2)
+        Length: 14
+        Value: 00010001207106ee8851fb6bd76d
+        DUID: 00010001207106ee8851fb6bd76d
+        DUID Type: link-layer address plus time (1)
+        Hardware type: Ethernet (1)
+        DUID Time: Mar 31, 2017 13:24:14.000000000 BST
+        Link-layer address: 88:51:fb:6b:d7:6d
+    DNS recursive name server
+        Option: DNS recursive name server (23)
+        Length: 16
+        Value: 20010db8000100010000000000000201
+         1 DNS server address: 2001:db8:1:1::201 (2001:db8:1:1::201)
+    Domain Search List
+        Option: Domain Search List (24)
+        Length: 14
+        Value: 08696e7465726e616c036c616e00
+        DNS Domain Search List
+        Domain Search List FQDN: internal.lan
+    DNS recursive name server
+        Option: DNS recursive name server (23)
+        Length: 16
+        Value: 20010db8000100010000000000000201
+         1 DNS server address: 2001:db8:1:1::201 (2001:db8:1:1::201)
+    Domain Search List
+        Option: Domain Search List (24)
+        Length: 14
+        Value: 08696e7465726e616c036c616e00
+        DNS Domain Search List
+        Domain Search List FQDN: internal.lan
