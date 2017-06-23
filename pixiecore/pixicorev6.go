@@ -13,6 +13,8 @@ type ServerV6 struct {
 	Address string
 	Port string
 	Duid []byte
+	IPxeUrl string
+	HttpbootUrl string
 
 	errs chan error
 
@@ -23,10 +25,20 @@ type ServerV6 struct {
 	Debug func(subsystem, msg string)
 }
 
+func NewServerV6() *ServerV6 {
+	log := func(subsystem, msg string) { fmt.Printf("[%s] %s", subsystem, msg) }
+	ret := &ServerV6{
+		Port: "547",
+		Log: log,
+		Debug: log,
+	}
+	return ret
+}
+
 func (s *ServerV6) Serve() error {
 	s.log("dhcp", "starting...")
 
-	dhcp, err := dhcp6.NewConn(s.Address)
+	dhcp, err := dhcp6.NewConn(s.Address, s.Port)
 	if err != nil {
 		return err
 	}

@@ -164,6 +164,8 @@ func (p *Packet) ShouldDiscard(serverDuid []byte) error {
 		return ShouldDiscardRequest(p, serverDuid)
 	case MsgInformationRequest:
 		return ShouldDiscardInformationRequest(p, serverDuid)
+	case MsgRelease:
+		return nil // FIX ME!
 	default:
 		return fmt.Errorf("Unknown packet")
 	}

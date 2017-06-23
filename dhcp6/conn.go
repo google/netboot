@@ -24,14 +24,14 @@ type Conn struct {
 	listenPort string
 }
 
-func NewConn(addr string) (*Conn, error) {
+func NewConn(addr, port string) (*Conn, error) {
 	ifi, err := InterfaceIndexByAddress(addr)
 	if err != nil {
 		return nil, err
 	}
 
 	group := net.ParseIP("ff02::1:2")
-	c, err := net.ListenPacket("udp6", "[::]:547")
+	c, err := net.ListenPacket("udp6", "[::]:" + port)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func NewConn(addr string) (*Conn, error) {
 		group: 	 group,
 		ifi: ifi,
 		listenAddress: addr,
-		listenPort: "547",
+		listenPort: port,
 	}, nil
 }
 
