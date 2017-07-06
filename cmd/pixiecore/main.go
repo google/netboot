@@ -21,6 +21,8 @@ import (
 )
 
 // qemu-system-x86_64 -L . --bios /usr/share/edk2-firmware/ipv6/OVMF.fd -netdev bridge,br=br1,id=net0 -device virtio-net-pci,netdev=net0
+// sudo ./pixiecore bootipv6 --listen-addr=2001:db8:f00f:cafe::4/64 --httpboot-url=http://[2001:db8:f00f:cafe::4]/bootx64.efi --ipxe-url=http://[2001:db8:f00f:cafe::4]/script.ipxe
+
 func main() {
 	cli.Ipxe[pixiecore.FirmwareX86PC] = ipxe.MustAsset("undionly.kpxe")
 	cli.Ipxe[pixiecore.FirmwareEFI32] = ipxe.MustAsset("ipxe-i386.efi")
@@ -28,16 +30,4 @@ func main() {
 	cli.Ipxe[pixiecore.FirmwareEFIBC] = ipxe.MustAsset("ipxe-x86_64.efi")
 	cli.Ipxe[pixiecore.FirmwareX86Ipxe] = ipxe.MustAsset("ipxe.pxe")
 	cli.CLI()
-
-	//log := func(subsystem, msg string) { fmt.Printf("[%s] %s", subsystem, msg) }
-	//s := pixiecore.ServerV6{
-	//	Address: "2001:db8:f00f:cafe::4/64",
-	//	Log: log,
-	//	Debug: log,
-	//}
-	//
-	//err := s.Serve()
-	//if err != nil {
-	//	fmt.Printf("Error: %s", err)
-	//}
 }
