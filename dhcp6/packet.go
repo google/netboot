@@ -5,6 +5,7 @@ import (
 	"net"
 	"encoding/binary"
 	"bytes"
+	"golang.org/x/tools/go/gcimporter15/testdata"
 )
 
 type MessageType uint8
@@ -28,21 +29,16 @@ const (
 type Packet struct {
 	Type          MessageType
 	TransactionID [3]byte
-	Options       []byte
+	Options       Options
 }
 
-func MakePacket(bs []byte, len int) *Packet {
-	ret := &Packet{Type: MessageType(bs[0]), Options: make([]byte, len - 4)}
-	copy(ret.TransactionID[:], bs[1:4])
-	copy(ret.Options[:], bs[4:len])
-	return ret
-}
-
-func (p *Packet) UnmarshalOptions() (Options, error) {
-	ret, err := MakeOptions(p.Options)
+func MakePacket(bs []byte, len int) (*Packet, error) {
+	options, err := MakeOptions(bs[4:]) // 4:len?
 	if err != nil {
 		return nil, fmt.Errorf("packet has malformed options section: %s", err)
 	}
+	ret := &Packet{Type: MessageType(bs[0]), Options: options}
+	copy(ret.TransactionID[:], bs[1:4])
 	return ret, nil
 }
 
@@ -62,7 +58,7 @@ func (p *Packet) BuildResponse(serverDuid []byte) ([]byte, error) {
 }
 
 func (p *Packet) BuildMsgAdvertise(serverDuid []byte) ([]byte, error) {
-	in_options, _ := p.UnmarshalOptions()
+	in_options := p.Options
 	ret_options := make(Options)
 
 	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
@@ -92,7 +88,7 @@ func (p *Packet) BuildMsgAdvertise(serverDuid []byte) ([]byte, error) {
 // TODO: OptClientArchType may not be present
 
 func (p *Packet) BuildMsgReply(serverDuid []byte) ([]byte, error) {
-	in_options, _ := p.UnmarshalOptions()
+	in_options := p.Options
 	ret_options := make(Options)
 
 	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
@@ -116,7 +112,7 @@ func (p *Packet) BuildMsgReply(serverDuid []byte) ([]byte, error) {
 }
 
 func (p *Packet) BuildMsgInformationRequestReply(serverDuid []byte) ([]byte, error) {
-	in_options, _ := p.UnmarshalOptions()
+	in_options := p.Options
 	ret_options := make(Options)
 
 	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
@@ -138,7 +134,7 @@ func (p *Packet) BuildMsgInformationRequestReply(serverDuid []byte) ([]byte, err
 }
 
 func (p *Packet) BuildMsgReleaseReply(serverDuid []byte) ([]byte, error){
-	in_options, _ := p.UnmarshalOptions()
+	in_options := p.Options
 	ret_options := make(Options)
 
 	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
@@ -172,7 +168,7 @@ func (p *Packet) ShouldDiscard(serverDuid []byte) error {
 }
 
 func ShouldDiscardSolicit(p *Packet) error {
-	options, _ := MakeOptions(p.Options)
+	options := p.Options
 	if !options.RequestedBootFileUrlOption() {
 		return fmt.Errorf("'Solicit' packet doesn't have file url option")
 	}
@@ -186,7 +182,7 @@ func ShouldDiscardSolicit(p *Packet) error {
 }
 
 func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
-	options, _ := MakeOptions(p.Options)
+	options := p.Options
 	if !options.RequestedBootFileUrlOption() {
 		return fmt.Errorf("'Request' packet doesn't have file url option")
 	}
@@ -203,7 +199,7 @@ func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
 }
 
 func ShouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
-	options, _ := MakeOptions(p.Options)
+	options := p.Options
 	if !options.RequestedBootFileUrlOption() {
 		return fmt.Errorf("'Information-request' packet doesn't have boot file url option")
 	}

@@ -17,8 +17,7 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
 			continue
 		}
 
-		opts, _ := pkt.UnmarshalOptions()
-		s.log("dhcpv6", fmt.Sprintf("Received (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, opts.HumanReadable()))
+		s.log("dhcpv6", fmt.Sprintf("Received (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, pkt.Options.HumanReadable()))
 
 		response, _ := pkt.BuildResponse(s.Duid)
 		if err := conn.SendDHCP(src, response); err != nil {
@@ -26,8 +25,8 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
 			continue
 		}
 
-		reply_packet := dhcp6.MakePacket(response, len(response))
-		reply_opts,_ := reply_packet.UnmarshalOptions()
+		reply_packet, _ := dhcp6.MakePacket(response, len(response))
+		reply_opts := reply_packet.Options
 
 		s.log("dhcpv6", fmt.Sprintf("Sent (%d) packet (%d): %s\n", reply_packet.Type, reply_packet.TransactionID, reply_opts.HumanReadable()))
 	}
