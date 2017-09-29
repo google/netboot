@@ -81,7 +81,7 @@ func InterfaceIndexByAddress(ifAddr string) (*net.Interface, error) {
 func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 	b := make([]byte, 1500)
 	for {
-		packetSize, rcm, _, err := c.conn.ReadFrom(b)
+		_, rcm, _, err := c.conn.ReadFrom(b)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -91,7 +91,10 @@ func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 		if !rcm.Dst.IsMulticast() || !rcm.Dst.Equal(c.group) {
 			continue // unknown group, discard
 		}
-		pkt := MakePacket(b, packetSize)
+		pkt, err := MakePacket(b)
+		if err != nil {
+			return nil, nil, err
+		}
 
 		return pkt, rcm.Src, nil
 	}

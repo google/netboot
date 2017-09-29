@@ -5,7 +5,6 @@ import (
 	"net"
 	"encoding/binary"
 	"bytes"
-	"golang.org/x/tools/go/gcimporter15/testdata"
 )
 
 type MessageType uint8
@@ -32,7 +31,7 @@ type Packet struct {
 	Options       Options
 }
 
-func MakePacket(bs []byte, len int) (*Packet, error) {
+func MakePacket(bs []byte) (*Packet, error) {
 	options, err := MakeOptions(bs[4:]) // 4:len?
 	if err != nil {
 		return nil, fmt.Errorf("packet has malformed options section: %s", err)
@@ -58,9 +57,9 @@ func (p *Packet) Marshal() ([]byte, error) {
 
 func (p *Packet) BuildResponse(serverDuid []byte) *Packet {
 	transactionId := p.TransactionID
-	clientId := in_options[OptClientId].Value
-	iaNaId := in_options[OptIaNa].Value[0:4]
-	clientArchType := in_options[OptClientArchType].Value
+	clientId := p.Options[OptClientId].Value
+	iaNaId := p.Options[OptIaNa].Value[0:4]
+	clientArchType := p.Options[OptClientArchType].Value
 
 	switch p.Type {
 	case MsgSolicit:

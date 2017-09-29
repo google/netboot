@@ -131,9 +131,13 @@ func (o *Option) Marshal() ([]byte, error) {
 }
 
 func (o Options) UnmarshalOptionRequestOption() map[uint16]bool {
-	oro_content := o[OptOro].Value
 	to_ret := make(map[uint16]bool)
 
+	if o[OptOro] == nil {
+		return to_ret
+	}
+
+	oro_content := o[OptOro].Value
 	for i := 0; i < int(o[OptOro].Length)/2; i++ {
 		to_ret[uint16(binary.BigEndian.Uint16(oro_content[i*2:(i+1)*2]))] = true
 	}
