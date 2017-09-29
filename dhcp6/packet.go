@@ -57,90 +57,91 @@ func (p *Packet) Marshal() ([]byte, error) {
 }
 
 func (p *Packet) BuildResponse(serverDuid []byte) *Packet {
+	transactionId := p.TransactionID
+	clientId := in_options[OptClientId].Value
+	iaNaId := in_options[OptIaNa].Value[0:4]
+	clientArchType := in_options[OptClientArchType].Value
+
 	switch p.Type {
 	case MsgSolicit:
-		return p.BuildMsgAdvertise(serverDuid)
+		return MakeMsgAdvertise(transactionId, serverDuid, clientId, iaNaId, clientArchType)
 	case MsgRequest:
-		return p.BuildMsgReply(serverDuid)
+		return MakeMsgReply(transactionId, serverDuid, clientId, iaNaId, clientArchType)
 	case MsgInformationRequest:
-		return p.BuildMsgInformationRequestReply(serverDuid)
+		return MakeMsgInformationRequestReply(transactionId, serverDuid, clientId, clientArchType)
 	case MsgRelease:
-		return p.BuildMsgReleaseReply(serverDuid)
+		return MakeMsgReleaseReply(transactionId, serverDuid, clientId)
 	default:
 		return nil
 	}
 }
 
-func (p *Packet) BuildMsgAdvertise(serverDuid []byte) *Packet {
-	in_options := p.Options
+func MakeMsgAdvertise(transactionId [3]byte, serverDuid, clientId, iaId, clientArchType []byte) *Packet {
 	ret_options := make(Options)
 
-	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
-	ret_options.AddOption(MakeIaNaOption(in_options[OptIaNa].Value[0:4], 0, 0,
-			MakeIaAddrOption(net.ParseIP("2001:db8:f00f:cafe::99"), 27000, 43200)))
+	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(clientId)), Value: clientId})
+	ret_options.AddOption(MakeIaNaOption(iaId, 0, 0,
+		MakeIaAddrOption(net.ParseIP("2001:db8:f00f:cafe::99"), 27000, 43200)))
 	ret_options.AddOption(&Option{Id: OptServerId, Length: uint16(len(serverDuid)), Value: serverDuid})
 
-	if 0x10 == binary.BigEndian.Uint16(in_options[OptClientArchType].Value) { // HTTPClient
+	if 0x10 == binary.BigEndian.Uint16(clientArchType) { // HTTPClient
 		ret_options.AddOption(&Option{Id: OptVendorClass, Length: 16, Value: []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116}}) // HTTPClient
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/bootx64.efi")})
 	} else {
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")})
 	}
-//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
+	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
 	//ret_options.AddOption(OptBootfileParam, []byte("http://")
 	//ret.Options[OptPreference] = [][]byte("http://")
 
-	return &Packet{Type: MsgAdvertise, TransactionID: p.TransactionID, Options: ret_options}
+	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
 }
 
 // TODO: OptClientArchType may not be present
 
-func (p *Packet) BuildMsgReply(serverDuid []byte) *Packet {
-	in_options := p.Options
+func MakeMsgReply(transactionId [3]byte, serverDuid, clientId, iaId, clientArchType []byte) *Packet {
 	ret_options := make(Options)
 
-	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
-	ret_options.AddOption(MakeIaNaOption(in_options[OptIaNa].Value[0:4], 0, 0,
+	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(clientId)), Value: clientId})
+	ret_options.AddOption(MakeIaNaOption(iaId, 0, 0,
 		MakeIaAddrOption(net.ParseIP("2001:db8:f00f:cafe::99"), 27000, 43200)))
 	ret_options.AddOption(&Option{Id: OptServerId, Length: uint16(len(serverDuid)), Value: serverDuid})
 	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
-	if 0x10 == binary.BigEndian.Uint16(in_options[OptClientArchType].Value) { // HTTPClient
+	if 0x10 == binary.BigEndian.Uint16(clientArchType) { // HTTPClient
 		ret_options.AddOption(&Option{Id: OptVendorClass, Length: 16, Value: []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116}}) // HTTPClient
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/bootx64.efi")})
 	} else {
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")})
 	}
 
-	return &Packet{Type: MsgReply, TransactionID: p.TransactionID, Options: ret_options}
+	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
-func (p *Packet) BuildMsgInformationRequestReply(serverDuid []byte) *Packet {
-	in_options := p.Options
+func MakeMsgInformationRequestReply(transactionId [3]byte, serverDuid, clientId, clientArchType []byte) *Packet {
 	ret_options := make(Options)
-
-	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
+	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(clientId)), Value: clientId})
 	ret_options.AddOption(&Option{Id: OptServerId, Length: uint16(len(serverDuid)), Value: serverDuid})
 	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
-	if 0x10 == binary.BigEndian.Uint16(in_options[OptClientArchType].Value) { // HTTPClient
-		ret_options.AddOption(&Option{Id: OptVendorClass, Length: 16, Value: []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116}}) // HTTPClient
+	if 0x10 == binary.BigEndian.Uint16(clientArchType) { // HTTPClient
+		ret_options.AddOption(&Option{Id: OptVendorClass, Length: 16, Value: []byte{0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116}}) // HTTPClient
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/bootx64.efi")})
 	} else {
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")})
 	}
-	return &Packet{Type: MsgReply, TransactionID: p.TransactionID, Options: ret_options}
+
+	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
-func (p *Packet) BuildMsgReleaseReply(serverDuid []byte) *Packet {
-	in_options := p.Options
+func MakeMsgReleaseReply(transactionId [3]byte, serverDuid, clientId []byte) *Packet {
 	ret_options := make(Options)
 
-	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(in_options[OptClientId].Value)), Value: in_options[OptClientId].Value})
+	ret_options.AddOption(&Option{Id: OptClientId, Length: uint16(len(clientId)), Value: clientId})
 	ret_options.AddOption(&Option{Id: OptServerId, Length: uint16(len(serverDuid)), Value: serverDuid})
 	v := make([]byte, 19, 19)
 	copy(v[2:], []byte("Release received."))
 	ret_options.AddOption(&Option{Id: OptStatusCode, Length: uint16(len(v)), Value: v})
 
-	return &Packet{Type: MsgReply, TransactionID: p.TransactionID, Options: ret_options}
+	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
 func (p *Packet) ShouldDiscard(serverDuid []byte) error {
