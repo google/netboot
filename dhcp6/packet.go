@@ -42,7 +42,21 @@ func MakePacket(bs []byte, len int) (*Packet, error) {
 	return ret, nil
 }
 
-func (p *Packet) BuildResponse(serverDuid []byte) ([]byte, error) {
+func (p *Packet) Marshal() ([]byte, error) {
+	marshalled_options, err := p.Options.Marshal()
+	if err != nil {
+		return nil, fmt.Errorf("packet has malformed options section: %s", err)
+	}
+
+	ret := make([]byte, len(marshalled_options) + 4, len(marshalled_options) + 4)
+	ret[0] = byte(MsgAdvertise)
+	copy(ret[1:], p.TransactionID[:])
+	copy(ret[4:], marshalled_options)
+
+	return ret, nil
+}
+
+func (p *Packet) BuildResponse(serverDuid []byte) *Packet {
 	switch p.Type {
 	case MsgSolicit:
 		return p.BuildMsgAdvertise(serverDuid)
@@ -53,11 +67,11 @@ func (p *Packet) BuildResponse(serverDuid []byte) ([]byte, error) {
 	case MsgRelease:
 		return p.BuildMsgReleaseReply(serverDuid)
 	default:
-		return nil, nil
+		return nil
 	}
 }
 
-func (p *Packet) BuildMsgAdvertise(serverDuid []byte) ([]byte, error) {
+func (p *Packet) BuildMsgAdvertise(serverDuid []byte) *Packet {
 	in_options := p.Options
 	ret_options := make(Options)
 
@@ -76,18 +90,12 @@ func (p *Packet) BuildMsgAdvertise(serverDuid []byte) ([]byte, error) {
 	//ret_options.AddOption(OptBootfileParam, []byte("http://")
 	//ret.Options[OptPreference] = [][]byte("http://")
 
-	marshalled_ret_options, _ := ret_options.Marshal()
-
-	ret := make([]byte, len(marshalled_ret_options) + 4, len(marshalled_ret_options) + 4)
-	ret[0] = byte(MsgAdvertise)
-	copy(ret[1:], p.TransactionID[:])
-	copy(ret[4:], marshalled_ret_options)
-	return ret, nil
+	return &Packet{Type: MsgAdvertise, TransactionID: p.TransactionID, Options: ret_options}
 }
 
 // TODO: OptClientArchType may not be present
 
-func (p *Packet) BuildMsgReply(serverDuid []byte) ([]byte, error) {
+func (p *Packet) BuildMsgReply(serverDuid []byte) *Packet {
 	in_options := p.Options
 	ret_options := make(Options)
 
@@ -102,16 +110,11 @@ func (p *Packet) BuildMsgReply(serverDuid []byte) ([]byte, error) {
 	} else {
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")})
 	}
-	marshalled_ret_options, _ := ret_options.Marshal()
 
-	ret := make([]byte, len(marshalled_ret_options) + 4, len(marshalled_ret_options) + 4)
-	ret[0] = byte(MsgReply)
-	copy(ret[1:], p.TransactionID[:])
-	copy(ret[4:], marshalled_ret_options)
-	return ret, nil
+	return &Packet{Type: MsgReply, TransactionID: p.TransactionID, Options: ret_options}
 }
 
-func (p *Packet) BuildMsgInformationRequestReply(serverDuid []byte) ([]byte, error) {
+func (p *Packet) BuildMsgInformationRequestReply(serverDuid []byte) *Packet {
 	in_options := p.Options
 	ret_options := make(Options)
 
@@ -124,16 +127,10 @@ func (p *Packet) BuildMsgInformationRequestReply(serverDuid []byte) ([]byte, err
 	} else {
 		ret_options.AddOption(&Option{Id: OptBootfileUrl, Length: 42, Value: []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")})
 	}
-	marshalled_ret_options, _ := ret_options.Marshal()
-
-	ret := make([]byte, len(marshalled_ret_options) + 4, len(marshalled_ret_options) + 4)
-	ret[0] = byte(MsgReply)
-	copy(ret[1:], p.TransactionID[:])
-	copy(ret[4:], marshalled_ret_options)
-	return ret, nil
+	return &Packet{Type: MsgReply, TransactionID: p.TransactionID, Options: ret_options}
 }
 
-func (p *Packet) BuildMsgReleaseReply(serverDuid []byte) ([]byte, error){
+func (p *Packet) BuildMsgReleaseReply(serverDuid []byte) *Packet {
 	in_options := p.Options
 	ret_options := make(Options)
 
@@ -142,14 +139,8 @@ func (p *Packet) BuildMsgReleaseReply(serverDuid []byte) ([]byte, error){
 	v := make([]byte, 19, 19)
 	copy(v[2:], []byte("Release received."))
 	ret_options.AddOption(&Option{Id: OptStatusCode, Length: uint16(len(v)), Value: v})
-	marshalled_ret_options, _ := ret_options.Marshal()
 
-	ret := make([]byte, len(marshalled_ret_options) + 4, len(marshalled_ret_options) + 4)
-	ret[0] = byte(MsgReply)
-	copy(ret[1:], p.TransactionID[:])
-	copy(ret[4:], marshalled_ret_options)
-	//copy(ret.Options, marshalled_ret_options)
-	return ret, nil
+	return &Packet{Type: MsgReply, TransactionID: p.TransactionID, Options: ret_options}
 }
 
 func (p *Packet) ShouldDiscard(serverDuid []byte) error {

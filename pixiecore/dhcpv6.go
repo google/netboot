@@ -19,15 +19,18 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
 
 		s.log("dhcpv6", fmt.Sprintf("Received (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, pkt.Options.HumanReadable()))
 
-		response, _ := pkt.BuildResponse(s.Duid)
-		if err := conn.SendDHCP(src, response); err != nil {
-			s.log("dhcpv6", fmt.Sprintf("Error sending reply (%d) (%d): %s", pkt.Type, pkt.TransactionID, err))
+		response := pkt.BuildResponse(s.Duid)
+		marshalled_response, err := response.Marshal()
+		if err != nil {
+			s.log("dhcpv6", fmt.Sprintf("Error marshalling response: %s", response.Type, response.TransactionID, err))
 			continue
 		}
 
-		reply_packet, _ := dhcp6.MakePacket(response, len(response))
-		reply_opts := reply_packet.Options
+		if err := conn.SendDHCP(src, marshalled_response); err != nil {
+			s.log("dhcpv6", fmt.Sprintf("Error sending reply (%d) (%d): %s", response.Type, response.TransactionID, err))
+			continue
+		}
 
-		s.log("dhcpv6", fmt.Sprintf("Sent (%d) packet (%d): %s\n", reply_packet.Type, reply_packet.TransactionID, reply_opts.HumanReadable()))
+		s.log("dhcpv6", fmt.Sprintf("Sent (%d) packet (%d): %s\n", response.Type, response.TransactionID, response.Options.HumanReadable()))
 	}
 }
