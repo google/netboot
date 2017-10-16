@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
+func (s *ServerV6) serveDHCP(conn *dhcp6.Conn, addressPool dhcp6.AddressPool) error {
 	s.log("dhcpv6", "Waiting for packets...\n")
 	for {
 		pkt, src, err := conn.RecvDHCP()
@@ -19,7 +19,7 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
 
 		s.log("dhcpv6", fmt.Sprintf("Received (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, pkt.Options.HumanReadable()))
 
-		response := pkt.BuildResponse(s.Duid)
+		response := pkt.BuildResponse(s.Duid, addressPool)
 		marshalled_response, err := response.Marshal()
 		if err != nil {
 			s.log("dhcpv6", fmt.Sprintf("Error marshalling response: %s", response.Type, response.TransactionID, err))

@@ -54,8 +54,10 @@ func (s *ServerV6) Serve() error {
 	s.errs = make(chan error, 6)
 
 	//s.debug("Init", "Starting Pixiecore goroutines")
+	addressPool := dhcp6.NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::10"), net.ParseIP("2001:db8:f00f:cafe::100"), 1800)
+
 	s.SetDUID(dhcp.SourceHardwareAddress())
-	go func() { s.errs <- s.serveDHCP(dhcp) }()
+	go func() { s.errs <- s.serveDHCP(dhcp, addressPool) }()
 
 	// Wait for either a fatal error, or Shutdown().
 	err = <-s.errs

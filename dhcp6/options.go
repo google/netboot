@@ -40,6 +40,10 @@ type Option struct {
 	Value []byte
 }
 
+func MakeOption(id uint16, value []byte) *Option {
+	return &Option{ Id: id, Length: uint16(len(value)), Value: value}
+}
+
 type Options map[uint16]*Option
 
 func MakeOptions(bs []byte) (Options, error) {
@@ -71,8 +75,45 @@ func MakeOptions(bs []byte) (Options, error) {
 func (o Options) HumanReadable() []string {
 	to_ret := make([]string, 0, len(o))
 	for _, opt := range(o) {
-		to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", opt.Id, opt.Length, opt.Value, opt.Value))
+		switch opt.Id {
+		case 3:
+			to_ret = append(to_ret, o.HumanReadableIaNa(*opt)...)
+		default:
+			to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", opt.Id, opt.Length, opt.Value, opt.Value))
+		}
 	}
+	return to_ret
+}
+
+func (o Options) HumanReadableIaNa(opt Option) []string {
+	to_ret := make([]string, 0)
+	to_ret = append(to_ret, fmt.Sprintf("Option: OptIaNa | len %d | iaid %x | t1 %d | t2 %d\n",
+		opt.Length, opt.Value[0:4], binary.BigEndian.Uint32(opt.Value[4:8]), binary.BigEndian.Uint32(opt.Value[8:12])))
+
+	if opt.Length <= 12 {
+		return to_ret // no options
+	}
+
+	iaOptions := opt.Value[12:]
+	for len(iaOptions) > 0 {
+		l := uint16(binary.BigEndian.Uint16(iaOptions[2:4]))
+		id := uint16(binary.BigEndian.Uint16(iaOptions[0:2]))
+
+
+		switch id {
+		case OptIaAddr:
+			ip := make(net.IP, 16)
+			copy(ip, iaOptions[4:20])
+			to_ret = append(to_ret, fmt.Sprintf("\tOption: IA_ADDR | len %d | ip %s | preferred %d | valid %d | %v \n",
+				l, ip, binary.BigEndian.Uint32(iaOptions[20:24]), binary.BigEndian.Uint32(iaOptions[24:28]), iaOptions[28:4+l]))
+		default:
+			to_ret = append(to_ret, fmt.Sprintf("\tOption: id %d | len %d | %s\n",
+				id, l, iaOptions[4:4+l]))
+		}
+
+		iaOptions = iaOptions[4+l:]
+	}
+
 	return to_ret
 }
 
@@ -87,7 +128,7 @@ func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaAddr *Option) (*Option) {
 	binary.BigEndian.PutUint32(value[4:], t1)
 	binary.BigEndian.PutUint32(value[8:], t2)
 	copy(value[12:], serializedIaAddr)
-	return &Option{Id: OptIaNa, Length: uint16(len(value)), Value: value}
+	return MakeOption(OptIaNa, value)
 }
 
 func MakeIaAddrOption(addr net.IP, preferredLifetime, validLifetime uint32) (*Option) {
@@ -95,7 +136,7 @@ func MakeIaAddrOption(addr net.IP, preferredLifetime, validLifetime uint32) (*Op
 	copy(value[0:], addr)
 	binary.BigEndian.PutUint32(value[16:], preferredLifetime)
 	binary.BigEndian.PutUint32(value[20:], validLifetime)
-	return &Option{ Id: OptIaAddr, Length: uint16(len(value)), Value: value}
+	return MakeOption(OptIaAddr, value)
 }
 
 func (o Options) Marshal() ([]byte, error) {

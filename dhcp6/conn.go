@@ -70,7 +70,7 @@ func InterfaceIndexByAddress(ifAddr string) (*net.Interface, error) {
 			return nil, fmt.Errorf("Error getting network interface address information: %s", err)
 		}
 		for _, addr := range addrs {
-			if addr.String() == ifAddr {
+			if addrToIP(addr).String() == ifAddr {
 				return &ifi, nil
 			}
 		}
@@ -78,10 +78,22 @@ func InterfaceIndexByAddress(ifAddr string) (*net.Interface, error) {
 	return nil, fmt.Errorf("Couldn't find an interface with address %s", ifAddr)
 }
 
+func addrToIP(a net.Addr) net.IP {
+	var ip net.IP
+	switch v := a.(type) {
+	case *net.IPAddr:
+		ip = v.IP
+	case *net.IPNet:
+		ip = v.IP
+	}
+
+	return ip
+}
+
 func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 	b := make([]byte, 1500)
 	for {
-		_, rcm, _, err := c.conn.ReadFrom(b)
+		n, rcm, _, err := c.conn.ReadFrom(b)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -91,7 +103,7 @@ func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 		if !rcm.Dst.IsMulticast() || !rcm.Dst.Equal(c.group) {
 			continue // unknown group, discard
 		}
-		pkt, err := MakePacket(b)
+		pkt, err := MakePacket(b, n)
 		if err != nil {
 			return nil, nil, err
 		}

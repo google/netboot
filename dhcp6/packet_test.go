@@ -3,6 +3,7 @@ package dhcp6
 import (
 	"testing"
 	"encoding/binary"
+	"net"
 )
 
 func TestMakeMsgAdvertise(t *testing.T) {
@@ -10,7 +11,8 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	msg := MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte("11"))
+	msg := MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte("11"),
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -57,7 +59,8 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	msg := MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte{0x0, 0x10})
+	msg := MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte{0x0, 0x10},
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -75,7 +78,8 @@ func TestMakeMsgReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	msg := MakeMsgReply(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte("11"))
+	msg := MakeMsgReply(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte("11"),
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -122,7 +126,8 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	msg := MakeMsgReply(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte{0x0, 0x10})
+	msg := MakeMsgReply(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte{0x0, 0x10},
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
