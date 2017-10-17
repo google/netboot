@@ -10,9 +10,12 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	expectedClientId := []byte("clientid")
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
+	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	msg := MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte("11"),
+	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
+
+	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp)
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -58,9 +61,12 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	expectedClientId := []byte("clientid")
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
+	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	msg := MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte{0x0, 0x10},
+	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
+
+	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -77,9 +83,12 @@ func TestMakeMsgReply(t *testing.T) {
 	expectedClientId := []byte("clientid")
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
+	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	msg := MakeMsgReply(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte("11"),
+	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
+
+	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -125,9 +134,12 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	expectedClientId := []byte("clientid")
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
+	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	msg := MakeMsgReply(transactionId, expectedServerId, expectedClientId, []byte("1234"), []byte{0x0, 0x10},
+	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
+
+	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -145,8 +157,10 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	msg := MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, []byte("11"))
+	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -188,7 +202,10 @@ func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	msg := MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, []byte{0x0, 0x10})
+	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
+
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -206,7 +223,10 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	msg := MakeMsgReleaseReply(transactionId, expectedServerId, expectedClientId)
+	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
+
+	msg := builder.MakeMsgReleaseReply(transactionId, expectedClientId)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)

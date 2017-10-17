@@ -210,3 +210,33 @@ func (o Options) HasIaTa() bool {
 	_, present := o[OptIaTa]
 	return present
 }
+
+func (o Options) HasClientArchType() bool {
+	_, present := o[OptClientArchType]
+	return present
+}
+
+func (o Options) ClientId() []byte {
+	opt, exists := o[OptClientId]
+	if exists {
+		return opt.Value
+	}
+	return nil
+}
+
+func (o Options) IaNaId() []byte {
+	opt, exists := o[OptIaNa]
+	if exists {
+		return opt.Value[0:4]
+	}
+	return nil
+}
+
+func (o Options) ClientArchType() uint16 {
+	opt, exists := o[OptClientArchType]
+	if exists {
+		return binary.BigEndian.Uint16(opt.Value)
+	}
+	return 0
+}
+

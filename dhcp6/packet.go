@@ -2,7 +2,6 @@ package dhcp6
 
 import (
 	"fmt"
-	"encoding/binary"
 	"bytes"
 )
 
@@ -30,6 +29,15 @@ type Packet struct {
 	Options       Options
 }
 
+type PacketBuilder struct {
+	ServerDuid				[]byte
+	PreferredLifetime 		uint32
+	ValidLifetime			uint32
+	BootFileUrlForHttpBoot	string
+	BootFileUrlForIpxe		string
+	Addresses				AddressPool
+}
+
 func MakePacket(bs []byte, packetLength int) (*Packet, error) {
 	options, err := MakeOptions(bs[4:packetLength])
 	if err != nil {
@@ -38,6 +46,12 @@ func MakePacket(bs []byte, packetLength int) (*Packet, error) {
 	ret := &Packet{Type: MessageType(bs[0]), Options: options}
 	copy(ret.TransactionID[:], bs[1:4])
 	return ret, nil
+}
+
+func MakePacketBuilder(serverDuid []byte, preferredLifetime, validLifetime uint32, httpBootFileUrl, ipxeBootFileUrl string,
+	addressPool AddressPool) *PacketBuilder {
+	return &PacketBuilder{ServerDuid: serverDuid, PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime,
+		BootFileUrlForHttpBoot: httpBootFileUrl, BootFileUrlForIpxe: ipxeBootFileUrl, Addresses: addressPool}
 }
 
 func (p *Packet) Marshal() ([]byte, error) {
@@ -52,97 +66,6 @@ func (p *Packet) Marshal() ([]byte, error) {
 	copy(ret[4:], marshalled_options)
 
 	return ret, nil
-}
-
-func (p *Packet) BuildResponse(serverDuid []byte, addressPool AddressPool) *Packet {
-	transactionId := p.TransactionID
-	clientId := p.Options[OptClientId].Value
-	iaNaId := p.Options[OptIaNa].Value[0:4]
-	var clientArchType []byte
-	o, exists := p.Options[OptClientArchType]; if exists {
-		clientArchType = o.Value
-	}
-	switch p.Type {
-	case MsgSolicit:
-		return MakeMsgAdvertise(transactionId, serverDuid, clientId, iaNaId, clientArchType, addressPool)
-	case MsgRequest:
-		return MakeMsgReply(transactionId, serverDuid, clientId, iaNaId, clientArchType, addressPool)
-	case MsgInformationRequest:
-		return MakeMsgInformationRequestReply(transactionId, serverDuid, clientId, clientArchType)
-	case MsgRelease:
-		return MakeMsgReleaseReply(transactionId, serverDuid, clientId)
-	default:
-		return nil
-	}
-}
-
-func MakeMsgAdvertise(transactionId [3]byte, serverDuid, clientId, iaId, clientArchType []byte, addressPool AddressPool) *Packet {
-	ret_options := make(Options)
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	association := addressPool.ReserveAddress(clientId, iaId)
-	ret_options.AddOption(MakeIaNaOption(iaId, association.t1, association.t2,
-		MakeIaAddrOption(association.ipAddress, 27000, 43200)))
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
-
-	if 0x10 == binary.BigEndian.Uint16(clientArchType) { // HTTPClient
-		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte("http://[2001:db8:f00f:cafe::4]/bootx64.efi")))
-	} else {
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")))
-	}
-	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
-	//ret_options.AddOption(OptBootfileParam, []byte("http://")
-	//ret.Options[OptPreference] = [][]byte("http://")
-
-	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
-}
-
-// TODO: OptClientArchType may not be present
-
-func MakeMsgReply(transactionId [3]byte, serverDuid, clientId, iaId, clientArchType []byte, addressPool AddressPool) *Packet {
-	ret_options := make(Options)
-
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	association := addressPool.ReserveAddress(clientId, iaId)
-	ret_options.AddOption(MakeIaNaOption(iaId, association.t1, association.t2,
-		MakeIaAddrOption(association.ipAddress, 27000, 43200)))
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
-	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
-	if 0x10 == binary.BigEndian.Uint16(clientArchType) { // HTTPClient
-		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte("http://[2001:db8:f00f:cafe::4]/bootx64.efi")))
-	} else {
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")))
-	}
-
-	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
-}
-
-func MakeMsgInformationRequestReply(transactionId [3]byte, serverDuid, clientId, clientArchType []byte) *Packet {
-	ret_options := make(Options)
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
-	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
-	if 0x10 == binary.BigEndian.Uint16(clientArchType) { // HTTPClient
-		ret_options.AddOption(MakeOption(OptVendorClass, []byte{0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte("http://[2001:db8:f00f:cafe::4]/bootx64.efi")))
-	} else {
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte("http://[2001:db8:f00f:cafe::4]/script.ipxe")))
-	}
-
-	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
-}
-
-func MakeMsgReleaseReply(transactionId [3]byte, serverDuid, clientId []byte) *Packet {
-	ret_options := make(Options)
-
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
-	v := make([]byte, 19, 19)
-	copy(v[2:], []byte("Release received."))
-	ret_options.AddOption(MakeOption(OptStatusCode, v))
-
-	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
 func (p *Packet) ShouldDiscard(serverDuid []byte) error {
@@ -204,3 +127,97 @@ func ShouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
 	}
 	return nil
 }
+
+func (b *PacketBuilder) BuildResponse(in *Packet) *Packet {
+	switch in.Type {
+	case MsgSolicit:
+		association := b.Addresses.ReserveAddress(in.Options.ClientId(), in.Options.IaNaId())
+		return b.MakeMsgAdvertise(in.TransactionID, in.Options.ClientId(), in.Options.IaNaId(),
+			in.Options.ClientArchType(), association.ipAddress)
+	case MsgRequest:
+		association := b.Addresses.ReserveAddress(in.Options.ClientId(), in.Options.IaNaId())
+		return b.MakeMsgReply(in.TransactionID, in.Options.ClientId(), in.Options.IaNaId(),
+			in.Options.ClientArchType(), association.ipAddress)
+	case MsgInformationRequest:
+		return b.MakeMsgInformationRequestReply(in.TransactionID, in.Options.ClientId(),
+			in.Options.ClientArchType())
+	case MsgRelease:
+		b.Addresses.ReleaseAddress(in.Options.ClientId(), in.Options.IaNaId())
+		return b.MakeMsgReleaseReply(in.TransactionID, in.Options.ClientId())
+	default:
+		return nil
+	}
+}
+
+func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId, iaId []byte, clientArchType uint16, ipAddress []byte) *Packet {
+	ret_options := make(Options)
+	ret_options.AddOption(MakeOption(OptClientId, clientId))
+	ret_options.AddOption(MakeIaNaOption(iaId, b.calculateT1(), b.calculateT2(),
+		MakeIaAddrOption(ipAddress, b.PreferredLifetime, b.ValidLifetime)))
+	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+
+	if 0x10 ==  clientArchType { // HTTPClient
+		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForHttpBoot)))
+	} else {
+		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForIpxe)))
+	}
+	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
+	//ret_options.AddOption(OptBootfileParam, []byte("http://")
+	//ret.Options[OptPreference] = [][]byte("http://")
+
+	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
+}
+
+func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId, iaId []byte, clientArchType uint16, ipAddress []byte) *Packet {
+	ret_options := make(Options)
+	ret_options.AddOption(MakeOption(OptClientId, clientId))
+	ret_options.AddOption(MakeIaNaOption(iaId, b.calculateT1(), b.calculateT2(),
+		MakeIaAddrOption(ipAddress, b.PreferredLifetime, b.ValidLifetime)))
+	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+
+	if 0x10 ==  clientArchType { // HTTPClient
+		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForHttpBoot)))
+	} else {
+		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForIpxe)))
+	}
+
+	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
+}
+
+func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, clientId []byte, clientArchType uint16) *Packet {
+	ret_options := make(Options)
+	ret_options.AddOption(MakeOption(OptClientId, clientId))
+	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+
+	if 0x10 ==  clientArchType { // HTTPClient
+		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForHttpBoot)))
+	} else {
+		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForIpxe)))
+	}
+
+	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
+}
+
+func (b *PacketBuilder) MakeMsgReleaseReply(transactionId [3]byte, clientId []byte) *Packet {
+	ret_options := make(Options)
+
+	ret_options.AddOption(MakeOption(OptClientId, clientId))
+	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	v := make([]byte, 19, 19)
+	copy(v[2:], []byte("Release received."))
+	ret_options.AddOption(MakeOption(OptStatusCode, v))
+
+	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
+}
+
+func (b *PacketBuilder) calculateT1() uint32 {
+	return b.PreferredLifetime / 2
+}
+
+func (b *PacketBuilder) calculateT2() uint32 {
+	return (b.PreferredLifetime * 4)/5
+}
+

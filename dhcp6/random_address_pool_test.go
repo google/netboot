@@ -35,12 +35,6 @@ func TestReserveAddress(t *testing.T) {
 	if ia.createdAt != expectedTime {
 		t.Fatalf("Expected creation time: %v, but got: %v", expectedTime, ia.createdAt)
 	}
-	expectedT1 := pool.calculateT1(expectedMaxLifetime); if ia.t1 != expectedT1 {
-		t.Fatalf("Expected creation t1: %v, but got: %v", expectedT1, ia.t1)
-	}
-	expectedT2 := pool.calculateT2(expectedMaxLifetime); if ia.t2 != expectedT2 {
-		t.Fatalf("Expected creation t2: %v, but got: %v", expectedT2, ia.t2)
-	}
 }
 
 func TestReserveAddressUpdatesAddressPool(t *testing.T) {
@@ -93,9 +87,9 @@ func TestReserveAddressKeepsTrackOfAssociationExpiration(t *testing.T) {
 	if expiration == nil {
 		t.Fatal("Expected an identity association expiration, but got nil")
 	}
-	if expiration.expiresAt != pool.calculateAssociationExpiration(expectedTime, expectedMaxLifetime) {
+	if expiration.expiresAt != pool.calculateAssociationExpiration(expectedTime) {
 		t.Fatalf("Expected association to expire at %v, but got %v",
-			pool.calculateAssociationExpiration(expectedTime, expectedMaxLifetime), expiration.expiresAt)
+			pool.calculateAssociationExpiration(expectedTime), expiration.expiresAt)
 	}
 }
 
@@ -125,7 +119,7 @@ func TestReleaseAddress(t *testing.T) {
 	pool.timeNow = func() time.Time { return expectedTime }
 	a := pool.ReserveAddress(expectedClientId, expectedIaId)
 
-	pool.ReleaseAddress(expectedClientId, expectedIaId, a.ipAddress)
+	pool.ReleaseAddress(expectedClientId, expectedIaId)
 
 	_, exists := pool.identityAssociations[pool.calculateIaIdHash(expectedClientId, expectedIaId)]; if exists {
 		t.Fatalf("identity association for %v should've been removed, but is still available", a.ipAddress)
