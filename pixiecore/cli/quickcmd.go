@@ -272,7 +272,7 @@ func archRecipe(parent *cobra.Command) {
 
 func netbootRecipe(parent *cobra.Command) {
 	var netbootCmd = &cobra.Command{
-		Use:   "netboot",
+		Use:   "xyz",
 		Short: "Boot a netboot.xyz installer",
 		Long: `https://network.xyz allows to boot multiple operating
 	systems and useful system utilities.`,
