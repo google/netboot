@@ -270,6 +270,22 @@ func archRecipe(parent *cobra.Command) {
 	parent.AddCommand(archCmd)
 }
 
+func netbootRecipe(parent *cobra.Command) {
+	var netbootCmd = &cobra.Command{
+		Use:   "netboot",
+		Short: "Boot a netboot.xyz installer",
+		Long: `https://network.xyz allows to boot multiple operating
+	systems and useful system utilities.`,
+		Run: func(cmd *cobra.Command, args []string) {
+		        kernel := "https://boot.netboot.xyz/ipxe/netboot.xyz.lkrn"
+			fmt.Println(staticFromFlags(cmd, kernel, []string {}, "").Serve())
+		},
+	}
+	serverConfigFlags(netbootCmd)
+	staticConfigFlags(netbootCmd)
+	parent.AddCommand(netbootCmd)
+}
+
 func init() {
 	rootCmd.AddCommand(quickCmd)
 	debianRecipe(quickCmd)
@@ -277,6 +293,7 @@ func init() {
 	fedoraRecipe(quickCmd)
 	centosRecipe(quickCmd)
 	//archRecipe(quickCmd)
+	netbootRecipe(quickCmd)
 
 	// TODO: some kind of caching support where quick OSes get
 	// downloaded locally, so you don't have to fetch from a remote
