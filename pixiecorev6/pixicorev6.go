@@ -1,4 +1,4 @@
-package pixiecore
+package pixiecorev6
 
 import (
 	"go.universe.tf/netboot/dhcp6"
@@ -19,7 +19,6 @@ type ServerV6 struct {
 	errs chan error
 
 	eventsMu sync.Mutex
-	events   map[string][]machineEvent
 
 	Log func(subsystem, msg string)
 	Debug func(subsystem, msg string)
@@ -45,7 +44,6 @@ func (s *ServerV6) Serve() error {
 
 	s.log("dhcp", "new connection...")
 
-	s.events = make(map[string][]machineEvent)
 	// 5 buffer slots, one for each goroutine, plus one for
 	// Shutdown(). We only ever pull the first error out, but shutdown
 	// will likely generate some spurious errors from the other
@@ -57,9 +55,9 @@ func (s *ServerV6) Serve() error {
 	s.SetDUID(dhcp.SourceHardwareAddress())
 
 	addressPool := dhcp6.NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::10"), net.ParseIP("2001:db8:f00f:cafe::100"), 1850)
-	packetBuilder := dhcp6.MakePacketBuilder(s.Duid, 1800, 1850,
-		"http://[2001:db8:f00f:cafe::4]/bootx64.efi",
-		"http://[2001:db8:f00f:cafe::4]/script.ipxe", addressPool)
+//	bootConfiguration := dhcp6.MakeStaticBootConfiguration("http://[2001:db8:f00f:cafe::4]/bootx64.efi", "http://[2001:db8:f00f:cafe::4]/script.ipxe")
+	bootConfiguration := dhcp6.MakeApiBootConfiguration("http://[2001:db8:f00f:cafe::4]:8888/", 10 *time.Second)
+	packetBuilder := dhcp6.MakePacketBuilder(s.Duid, 1800, 1850, bootConfiguration, addressPool)
 
 	go func() { s.errs <- s.serveDHCP(dhcp, packetBuilder) }()
 

@@ -20,20 +20,20 @@ func TestReserveAddress(t *testing.T) {
 	if ia == nil {
 		t.Fatalf("Expected a non-nil identity association")
 	}
-	if string(ia.ipAddress) !=  string(expectedIp) {
-		t.Fatalf("Expected ip: %v, but got: %v", expectedIp, ia.ipAddress)
+	if string(ia.IpAddress) !=  string(expectedIp) {
+		t.Fatalf("Expected ip: %v, but got: %v", expectedIp, ia.IpAddress)
 	}
-	if string(ia.clientId) !=  string(expectedClientId) {
-		t.Fatalf("Expected client id: %v, but got: %v", expectedClientId, ia.clientId)
+	if string(ia.ClientId) !=  string(expectedClientId) {
+		t.Fatalf("Expected client id: %v, but got: %v", expectedClientId, ia.ClientId)
 	}
-	if string(ia.interfaceId) !=  string(expectedIaId) {
-		t.Fatalf("Expected interface id: %v, but got: %v", expectedIaId, ia.interfaceId)
+	if string(ia.InterfaceId) !=  string(expectedIaId) {
+		t.Fatalf("Expected interface id: %v, but got: %v", expectedIaId, ia.InterfaceId)
 	}
-	if ia.createdAt != expectedTime {
-		t.Fatalf("Expected creation time: %v, but got: %v", expectedTime, ia.createdAt)
+	if ia.CreatedAt != expectedTime {
+		t.Fatalf("Expected creation time: %v, but got: %v", expectedTime, ia.CreatedAt)
 	}
-	if ia.createdAt != expectedTime {
-		t.Fatalf("Expected creation time: %v, but got: %v", expectedTime, ia.createdAt)
+	if ia.CreatedAt != expectedTime {
+		t.Fatalf("Expected creation time: %v, but got: %v", expectedTime, ia.CreatedAt)
 	}
 }
 
@@ -53,8 +53,8 @@ func TestReserveAddressUpdatesAddressPool(t *testing.T) {
 	if !exists {
 		t.Fatalf("Expected to find identity association at %d but didn't", expectedIdx)
 	}
-	if string(a.clientId) != string(expectedClientId) || string(a.interfaceId) != string(expectedIaId) {
-		t.Fatalf("Expected ia association with client id %x and ia id %x, but got %x %x respectively", expectedClientId, expectedIaId, a.clientId, a.interfaceId)
+	if string(a.ClientId) != string(expectedClientId) || string(a.InterfaceId) != string(expectedIaId) {
+		t.Fatalf("Expected ia association with client id %x and ia id %x, but got %x %x respectively", expectedClientId, expectedIaId, a.ClientId, a.InterfaceId)
 	}
 }
 
@@ -104,7 +104,7 @@ func TestReserveAddressReturnsExistingAssociation(t *testing.T) {
 	firstAssociation := pool.ReserveAddress(expectedClientId, expectedIaId)
 	secondAssociation := pool.ReserveAddress(expectedClientId, expectedIaId)
 
-	if string(firstAssociation.ipAddress) != string(secondAssociation.ipAddress) {
+	if string(firstAssociation.IpAddress) != string(secondAssociation.IpAddress) {
 		t.Fatal("Expected return of the same ip address on both invocations")
 	}
 }
@@ -122,6 +122,6 @@ func TestReleaseAddress(t *testing.T) {
 	pool.ReleaseAddress(expectedClientId, expectedIaId)
 
 	_, exists := pool.identityAssociations[pool.calculateIaIdHash(expectedClientId, expectedIaId)]; if exists {
-		t.Fatalf("identity association for %v should've been removed, but is still available", a.ipAddress)
+		t.Fatalf("identity association for %v should've been removed, but is still available", a.IpAddress)
 	}
 }

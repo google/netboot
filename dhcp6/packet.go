@@ -3,6 +3,7 @@ package dhcp6
 import (
 	"fmt"
 	"bytes"
+	"encoding/binary"
 )
 
 type MessageType uint8
@@ -30,12 +31,11 @@ type Packet struct {
 }
 
 type PacketBuilder struct {
-	ServerDuid				[]byte
-	PreferredLifetime 		uint32
-	ValidLifetime			uint32
-	BootFileUrlForHttpBoot	string
-	BootFileUrlForIpxe		string
-	Addresses				AddressPool
+	ServerDuid        []byte
+	PreferredLifetime uint32
+	ValidLifetime     uint32
+	BootFileUrl       BootConfiguration
+	Addresses         AddressPool
 }
 
 func MakePacket(bs []byte, packetLength int) (*Packet, error) {
@@ -48,10 +48,10 @@ func MakePacket(bs []byte, packetLength int) (*Packet, error) {
 	return ret, nil
 }
 
-func MakePacketBuilder(serverDuid []byte, preferredLifetime, validLifetime uint32, httpBootFileUrl, ipxeBootFileUrl string,
+func MakePacketBuilder(serverDuid []byte, preferredLifetime, validLifetime uint32, bootFileUrl BootConfiguration,
 	addressPool AddressPool) *PacketBuilder {
 	return &PacketBuilder{ServerDuid: serverDuid, PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime,
-		BootFileUrlForHttpBoot: httpBootFileUrl, BootFileUrlForIpxe: ipxeBootFileUrl, Addresses: addressPool}
+		BootFileUrl: bootFileUrl, Addresses: addressPool}
 }
 
 func (p *Packet) Marshal() ([]byte, error) {
@@ -133,11 +133,11 @@ func (b *PacketBuilder) BuildResponse(in *Packet) *Packet {
 	case MsgSolicit:
 		association := b.Addresses.ReserveAddress(in.Options.ClientId(), in.Options.IaNaId())
 		return b.MakeMsgAdvertise(in.TransactionID, in.Options.ClientId(), in.Options.IaNaId(),
-			in.Options.ClientArchType(), association.ipAddress)
+			in.Options.ClientArchType(), association.IpAddress)
 	case MsgRequest:
 		association := b.Addresses.ReserveAddress(in.Options.ClientId(), in.Options.IaNaId())
 		return b.MakeMsgReply(in.TransactionID, in.Options.ClientId(), in.Options.IaNaId(),
-			in.Options.ClientArchType(), association.ipAddress)
+			in.Options.ClientArchType(), association.IpAddress)
 	case MsgInformationRequest:
 		return b.MakeMsgInformationRequestReply(in.TransactionID, in.Options.ClientId(),
 			in.Options.ClientArchType())
@@ -155,13 +155,16 @@ func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId, iaId [
 	ret_options.AddOption(MakeIaNaOption(iaId, b.calculateT1(), b.calculateT2(),
 		MakeIaAddrOption(ipAddress, b.PreferredLifetime, b.ValidLifetime)))
 	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
-
 	if 0x10 ==  clientArchType { // HTTPClient
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForHttpBoot)))
-	} else {
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForIpxe)))
 	}
+	bootfileUrl, err := b.BootFileUrl.GetBootUrl(b.ExtractLLAddressOrId(clientId), clientArchType)
+	if err != nil {
+		fmt.Printf("!!!!!!!!!!!!!!!!!!!!!!!! %s", err)
+		return nil
+	}
+	ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(bootfileUrl)))
+
 	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
 	//ret_options.AddOption(OptBootfileParam, []byte("http://")
 	//ret.Options[OptPreference] = [][]byte("http://")
@@ -175,13 +178,14 @@ func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId, iaId []byt
 	ret_options.AddOption(MakeIaNaOption(iaId, b.calculateT1(), b.calculateT2(),
 		MakeIaAddrOption(ipAddress, b.PreferredLifetime, b.ValidLifetime)))
 	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
-
 	if 0x10 ==  clientArchType { // HTTPClient
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForHttpBoot)))
-	} else {
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForIpxe)))
 	}
+	bootfileUrl, err := b.BootFileUrl.GetBootUrl(b.ExtractLLAddressOrId(clientId), clientArchType)
+	if err != nil {
+		return nil
+	}
+	ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(bootfileUrl)))
 
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
@@ -190,13 +194,14 @@ func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, cl
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
 	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
-
 	if 0x10 ==  clientArchType { // HTTPClient
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForHttpBoot)))
-	} else {
-		ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(b.BootFileUrlForIpxe)))
 	}
+	bootfileUrl, err := b.BootFileUrl.GetBootUrl(b.ExtractLLAddressOrId(clientId), clientArchType)
+	if err != nil {
+		return nil
+	}
+	ret_options.AddOption(MakeOption(OptBootfileUrl, []byte(bootfileUrl)))
 
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
@@ -221,3 +226,14 @@ func (b *PacketBuilder) calculateT2() uint32 {
 	return (b.PreferredLifetime * 4)/5
 }
 
+func (b *PacketBuilder) ExtractLLAddressOrId(optClientId []byte) []byte {
+	idType := binary.BigEndian.Uint16(optClientId[0:2])
+	switch idType {
+	case 1:
+		return optClientId[8:]
+	case 3:
+		return optClientId[4:]
+	default:
+		return optClientId[2:]
+	}
+}

@@ -12,7 +12,8 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
+	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp)
@@ -63,7 +64,8 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
+	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp)
@@ -85,7 +87,8 @@ func TestMakeMsgReply(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
+	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp)
@@ -136,7 +139,8 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
+	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp)
@@ -157,7 +161,8 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
+	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11)
@@ -202,7 +207,8 @@ func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
+	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10)
@@ -223,7 +229,8 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, "httpbootfileurl", "ipxebootfileurl",
+	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
+	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgReleaseReply(transactionId, expectedClientId)
@@ -255,6 +262,33 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 	}
 	if len(expectedServerId) != len(serverIdOption.Value) {
 		t.Fatalf("Expected server id length of %d, got %d", len(expectedClientId), len(serverIdOption.Value))
+	}
+}
+
+func TestExtractLLAddressOrIdWithDUIDLLT(t *testing.T) {
+	builder := &PacketBuilder{}
+	expectedLLAddress := []byte{0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
+	llAddress := builder.ExtractLLAddressOrId([]byte{0x0, 0x1, 0x0, 0x1, 0x1, 0x2, 0x3, 0x4, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	if string(expectedLLAddress) != string(llAddress) {
+		t.Fatalf("Expected ll address %x, got: %x", expectedLLAddress, llAddress)
+	}
+}
+
+func TestExtractLLAddressOrIdWithDUIDEN(t *testing.T) {
+	builder := &PacketBuilder{}
+	expectedId := []byte{0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
+	id := builder.ExtractLLAddressOrId([]byte{0x0, 0x2, 0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	if string(expectedId) != string(id) {
+		t.Fatalf("Expected id %x, got: %x", expectedId, id)
+	}
+}
+
+func TestExtractLLAddressOrIdWithDUIDLL(t *testing.T) {
+	builder := &PacketBuilder{}
+	expectedLLAddress := []byte{0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
+	llAddress := builder.ExtractLLAddressOrId([]byte{0x0, 0x3, 0x0, 0x1, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	if string(expectedLLAddress) != string(llAddress) {
+		t.Fatalf("Expected ll address %x, got: %x", expectedLLAddress, llAddress)
 	}
 }
 
@@ -343,6 +377,7 @@ func TestShouldDiscardRequestWithWrongServerId(t *testing.T) {
 		t.Fatalf("Should discard request packet with wrong server id option, but didn't")
 	}
 }
+
 func MakeOptionRequestOptions(options []uint16) *Option {
 	value := make([]byte, len(options)*2)
 	for i, option := range(options) {

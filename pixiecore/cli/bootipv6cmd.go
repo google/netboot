@@ -2,8 +2,8 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
-	"go.universe.tf/netboot/pixiecore"
 	"fmt"
+	"go.universe.tf/netboot/pixiecorev6"
 )
 
 var bootIPv6Cmd = &cobra.Command{
@@ -23,7 +23,7 @@ var bootIPv6Cmd = &cobra.Command{
 			fatalf("Error reading flag: %s", err)
 		}
 
-		s := pixiecore.NewServerV6()
+		s := pixiecorev6.NewServerV6()
 
 		if addr == "" {
 			fatalf("Please specify address to listen on")
