@@ -5,21 +5,22 @@ import (
 	"fmt"
 	"go.universe.tf/netboot/pixiecorev6"
 	"go.universe.tf/netboot/dhcp6"
+	"time"
 )
 
-var bootIPv6Cmd = &cobra.Command{
-	Use:   "bootipv6",
-	Short: "Boot a kernel and optional init ramdisks over IPv6",
+var ipv6ApiCmd = &cobra.Command{
+	Use:   "ipv6api",
+	Short: "Boot a kernel and optional init ramdisks over IPv6 using api",
 	Run: func(cmd *cobra.Command, args []string) {
 		addr, err := cmd.Flags().GetString("listen-addr")
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		ipxeUrl, err := cmd.Flags().GetString("ipxe-url")
+		apiUrl, err := cmd.Flags().GetString("api-request-url")
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		httpBootUrl, err := cmd.Flags().GetString("httpboot-url")
+		apiTimeout, err := cmd.Flags().GetDuration("api-request-timeout")
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
@@ -30,27 +31,25 @@ var bootIPv6Cmd = &cobra.Command{
 			fatalf("Please specify address to listen on")
 		} else {
 		}
-		if ipxeUrl == "" {
+		if apiUrl == "" {
 			fatalf("Please specify ipxe config file url")
-		}
-		if httpBootUrl == "" {
-			fatalf("Please specify httpboot url")
 		}
 
 		s.Address = addr
-		s.BootUrls = dhcp6.MakeStaticBootConfiguration(httpBootUrl, ipxeUrl)
+		s.BootUrls = dhcp6.MakeApiBootConfiguration(apiUrl, apiTimeout)
 
 		fmt.Println(s.Serve())
 	},
 }
 
-func serverv6ConfigFlags(cmd *cobra.Command) {
+func serverv6ApiConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("listen-addr", "", "", "IPv6 address to listen on")
-	cmd.Flags().StringP("ipxe-url", "", "", "IPXE config file url, e.g. http://[2001:db8:f00f:cafe::4]/script.ipxe")
-	cmd.Flags().StringP("httpboot-url", "", "", "HTTPBoot url, e.g. http://[2001:db8:f00f:cafe::4]/bootx64.efi")
+	cmd.Flags().StringP("api-request-url", "", "", "Ipv6-specific API server url")
 }
 
 func init() {
-	rootCmd.AddCommand(bootIPv6Cmd)
-	serverv6ConfigFlags(bootIPv6Cmd)
+	rootCmd.AddCommand(ipv6ApiCmd)
+	serverv6ApiConfigFlags(ipv6ApiCmd)
+	ipv6ApiCmd.Flags().Duration("api-request-timeout", 5*time.Second, "Timeout for request to the API server")
 }
+

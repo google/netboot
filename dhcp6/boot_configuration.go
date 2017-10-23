@@ -10,19 +10,19 @@ import (
 )
 
 type BootConfiguration interface {
-	GetBootUrl(id []byte, clientArchType uint16) (string, error)
+	GetBootUrl(id []byte, clientArchType uint16) ([]byte, error)
 }
 
 type StaticBootConfiguration struct {
-	HttpBootUrl string
-	IPxeBootUrl	string
+	HttpBootUrl []byte
+	IPxeBootUrl	[]byte
 }
 
 func MakeStaticBootConfiguration(httpBootUrl, ipxeBootUrl string) *StaticBootConfiguration {
-	return &StaticBootConfiguration{HttpBootUrl: httpBootUrl, IPxeBootUrl: ipxeBootUrl}
+	return &StaticBootConfiguration{HttpBootUrl: []byte(httpBootUrl), IPxeBootUrl: []byte(ipxeBootUrl)}
 }
 
-func (bc *StaticBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) (string, error) {
+func (bc *StaticBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) ([]byte, error) {
 	if 0x10 ==  clientArchType {
 		return bc.HttpBootUrl, nil
 	}
@@ -44,15 +44,15 @@ func MakeApiBootConfiguration(url string, timeout time.Duration) *ApiBootConfigu
 	}
 }
 
-func (bc *ApiBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) (string, error) {
+func (bc *ApiBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) ([]byte, error) {
 	reqURL := fmt.Sprintf("%s/boot/%x/%d", bc.urlPrefix, id, clientArchType)
 	resp, err := bc.client.Get(reqURL)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
-		return "", fmt.Errorf("%s: %s", reqURL, http.StatusText(resp.StatusCode))
+		return nil, fmt.Errorf("%s: %s", reqURL, http.StatusText(resp.StatusCode))
 	}
 	defer resp.Body.Close()
 
@@ -60,7 +60,7 @@ func (bc *ApiBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) (st
 	buf.ReadFrom(resp.Body)
 	url, _ := bc.makeURLAbsolute(buf.String())
 
-	return url, nil
+	return []byte(url), nil
 }
 
 func (bc *ApiBootConfiguration) makeURLAbsolute(urlStr string) (string, error) {

@@ -10,11 +10,10 @@ import (
 )
 
 type ServerV6 struct {
-	Address string
-	Port string
-	Duid []byte
-	IPxeUrl string
-	HttpbootUrl string
+	Address 	string
+	Port 		string
+	Duid 		[]byte
+	BootUrls	dhcp6.BootConfiguration
 
 	errs chan error
 
@@ -56,8 +55,8 @@ func (s *ServerV6) Serve() error {
 
 	addressPool := dhcp6.NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::10"), net.ParseIP("2001:db8:f00f:cafe::100"), 1850)
 //	bootConfiguration := dhcp6.MakeStaticBootConfiguration("http://[2001:db8:f00f:cafe::4]/bootx64.efi", "http://[2001:db8:f00f:cafe::4]/script.ipxe")
-	bootConfiguration := dhcp6.MakeApiBootConfiguration("http://[2001:db8:f00f:cafe::4]:8888/", 10 *time.Second)
-	packetBuilder := dhcp6.MakePacketBuilder(s.Duid, 1800, 1850, bootConfiguration, addressPool)
+//	bootConfiguration := dhcp6.MakeApiBootConfiguration("http://[2001:db8:f00f:cafe::4]:8888/", 10 *time.Second)
+	packetBuilder := dhcp6.MakePacketBuilder(s.Duid, 1800, 1850, s.BootUrls, addressPool)
 
 	go func() { s.errs <- s.serveDHCP(dhcp, packetBuilder) }()
 

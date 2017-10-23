@@ -11,12 +11,12 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
-	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp)
+	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp, expectedBootFileUrl)
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -51,6 +51,9 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	if bootfileUrlOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
+	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	}
 
 	iaNaOption := msg.Options[OptIaNa]
 	if iaNaOption == nil {
@@ -63,21 +66,23 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
-	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp)
+	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp, expectedBootFileUrl)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
 		t.Fatalf("Vendor class option should be present")
 	}
-
 	bootfileUrlOption := msg.Options[OptBootfileUrl]
 	if bootfileUrlOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
+	}
+	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
 	}
 }
 
@@ -86,12 +91,12 @@ func TestMakeMsgReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
-	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp)
+	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp, expectedBootFileUrl)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -125,6 +130,9 @@ func TestMakeMsgReply(t *testing.T) {
 	bootfileUrlOption := msg.Options[OptBootfileUrl]
 	if bootfileUrlOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
+	}
+	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
 	}
 
 	iaNaOption := msg.Options[OptIaNa]
@@ -138,12 +146,12 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
-	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp)
+	msg := builder.MakeMsgReply(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp, expectedBootFileUrl)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -154,18 +162,21 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	if bootfileUrlOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
+	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	}
 }
 
 func TestMakeMsgInformationRequestReply(t *testing.T) {
 	expectedClientId := []byte("clientid")
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
+	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
-	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11)
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11, expectedBootFileUrl)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -200,18 +211,21 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	if bootfileUrlOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
+	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	}
 }
 
 func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 	expectedClientId := []byte("clientid")
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
+	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
-	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10)
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10, expectedBootFileUrl)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -222,6 +236,9 @@ func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 	if bootfileUrlOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
+	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	}
 }
 
 func TestMakeMsgReleaseReply(t *testing.T) {
@@ -229,8 +246,7 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	bootConfig := MakeStaticBootConfiguration("httpbootfileurl", "ipxebootfileurl")
-	builder := MakePacketBuilder(expectedServerId, 90, 100, bootConfig,
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
 	msg := builder.MakeMsgReleaseReply(transactionId, expectedClientId)
