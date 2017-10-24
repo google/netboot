@@ -34,7 +34,7 @@ type PacketBuilder struct {
 	ServerDuid        []byte
 	PreferredLifetime uint32
 	ValidLifetime     uint32
-	BootFileUrl       BootConfiguration
+	Configuration     BootConfiguration
 	Addresses         AddressPool
 }
 
@@ -51,7 +51,7 @@ func MakePacket(bs []byte, packetLength int) (*Packet, error) {
 func MakePacketBuilder(serverDuid []byte, preferredLifetime, validLifetime uint32, bootFileUrl BootConfiguration,
 	addressPool AddressPool) *PacketBuilder {
 	return &PacketBuilder{ServerDuid: serverDuid, PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime,
-		BootFileUrl: bootFileUrl, Addresses: addressPool}
+		Configuration: bootFileUrl, Addresses: addressPool}
 }
 
 func (p *Packet) Marshal() ([]byte, error) {
@@ -129,25 +129,26 @@ func ShouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
 }
 
 func (b *PacketBuilder) BuildResponse(in *Packet) (*Packet, error) {
+
 	switch in.Type {
 	case MsgSolicit:
 		association := b.Addresses.ReserveAddress(in.Options.ClientId(), in.Options.IaNaId())
-		bootFileUrl, err := b.BootFileUrl.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileUrl, err := b.Configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
 		return b.MakeMsgAdvertise(in.TransactionID, in.Options.ClientId(), in.Options.IaNaId(),
-			in.Options.ClientArchType(), association.IpAddress, bootFileUrl), nil
+			in.Options.ClientArchType(), association.IpAddress, bootFileUrl, b.Configuration.GetPreference()), nil
 	case MsgRequest:
 		association := b.Addresses.ReserveAddress(in.Options.ClientId(), in.Options.IaNaId())
-		bootFileUrl, err := b.BootFileUrl.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileUrl, err := b.Configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
 		return b.MakeMsgReply(in.TransactionID, in.Options.ClientId(), in.Options.IaNaId(),
 			in.Options.ClientArchType(), association.IpAddress, bootFileUrl), nil
 	case MsgInformationRequest:
-		bootFileUrl, err := b.BootFileUrl.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileUrl, err := b.Configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
@@ -161,8 +162,8 @@ func (b *PacketBuilder) BuildResponse(in *Packet) (*Packet, error) {
 	}
 }
 
-func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId, iaId []byte, clientArchType uint16, ipAddress []byte,
-		bootFileUrl []byte) *Packet {
+func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId, iaId []byte, clientArchType uint16, ipAddress,
+		bootFileUrl, preference []byte) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
 	ret_options.AddOption(MakeIaNaOption(iaId, b.calculateT1(), b.calculateT2(),
@@ -172,15 +173,15 @@ func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId, iaId [
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
 	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
+	if preference != nil {ret_options.AddOption(MakeOption(OptPreference, preference))}
 
 	//	ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
 	//ret_options.AddOption(OptBootfileParam, []byte("http://")
-	//ret.Options[OptPreference] = [][]byte("http://")
 
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
 }
 
-func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId, iaId []byte, clientArchType uint16, ipAddress []byte,
+func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId, iaId []byte, clientArchType uint16, ipAddress,
 		bootFileUrl []byte) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))

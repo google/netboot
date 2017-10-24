@@ -45,7 +45,11 @@ var bootIPv6Cmd = &cobra.Command{
 		}
 
 		s.Address = addr
-		s.BootUrls = dhcp6.MakeStaticBootConfiguration(httpBootUrl, ipxeUrl)
+		preference, err := cmd.Flags().GetUint8("preference")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		s.BootConfig = dhcp6.MakeStaticBootConfiguration(httpBootUrl, ipxeUrl, preference, cmd.Flags().Changed("preference"))
 
 		fmt.Println(s.Serve())
 	},
@@ -56,6 +60,7 @@ func serverv6ConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("ipxe-url", "", "", "IPXE config file url, e.g. http://[2001:db8:f00f:cafe::4]/script.ipxe")
 	cmd.Flags().StringP("httpboot-url", "", "", "HTTPBoot url, e.g. http://[2001:db8:f00f:cafe::4]/bootx64.efi")
 	cmd.Flags().Bool("debug", false, "Enable debug-level logging")
+	cmd.Flags().Uint8("preference", 255, "Set dhcp server preference value")
 }
 
 func init() {

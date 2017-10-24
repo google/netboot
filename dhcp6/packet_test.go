@@ -16,7 +16,8 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp, expectedBootFileUrl)
+	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x11, expectedIp,
+		expectedBootFileUrl, nil)
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -59,6 +60,28 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	if iaNaOption == nil {
 		t.Fatalf("interface non-temporary association option should be present")
 	}
+
+	preferenceOption := msg.Options[OptPreference]
+	if preferenceOption != nil {
+		t.Fatalf("Preference option shouldn't be set")
+	}
+}
+
+func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
+	builder := MakePacketBuilder([]byte("serverid"), 90, 100, nil,
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
+
+	expectedPreference := []byte{128}
+	msg := builder.MakeMsgAdvertise([3]byte{'t', 'i', 'd'}, []byte("clientid"), []byte("1234"), 0x11,
+		net.ParseIP("2001:db8:f00f:cafe::1"), []byte("http://bootfileurl"), expectedPreference)
+
+	preferenceOption := msg.Options[OptPreference]
+	if preferenceOption == nil {
+		t.Fatalf("Preference option should be set")
+	}
+	if string(expectedPreference) != string(preferenceOption.Value) {
+		t.Fatalf("Expected preference value %d, got %d", expectedPreference, preferenceOption.Value)
+	}
 }
 
 func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
@@ -71,7 +94,8 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), 100))
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp, expectedBootFileUrl)
+	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, []byte("1234"), 0x10, expectedIp,
+		expectedBootFileUrl, nil)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -82,7 +106,7 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 		t.Fatalf("Bootfile URL option should be present")
 	}
 	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
-		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+		t.Fatalf("Expected bootfile URL %s, got %s", expectedBootFileUrl, bootfileUrlOption)
 	}
 }
 

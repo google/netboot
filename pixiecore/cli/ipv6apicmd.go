@@ -42,7 +42,12 @@ var ipv6ApiCmd = &cobra.Command{
 		}
 
 		s.Address = addr
-		s.BootUrls = dhcp6.MakeApiBootConfiguration(apiUrl, apiTimeout)
+		preference, err := cmd.Flags().GetUint8("preference")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+
+		s.BootConfig = dhcp6.MakeApiBootConfiguration(apiUrl, apiTimeout, preference, cmd.Flags().Changed("preference"))
 
 		fmt.Println(s.Serve())
 	},
@@ -53,6 +58,7 @@ func serverv6ApiConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("api-request-url", "", "", "Ipv6-specific API server url")
 	cmd.Flags().Duration("api-request-timeout", 5*time.Second, "Timeout for request to the API server")
 	cmd.Flags().Bool("debug", false, "Enable debug-level logging")
+	cmd.Flags().Uint8("preference", 255, "Set dhcp server preference value")
 }
 
 func init() {

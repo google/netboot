@@ -21,11 +21,11 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn, packetBuilder *dhcp6.PacketBuilde
 
 		response, err := packetBuilder.BuildResponse(pkt)
 		if err != nil {
-			s.log("dhcpv6", fmt.Sprintf("Error creating response for transaction: %s: %s", pkt.TransactionID, err))
+			s.log("dhcpv6", fmt.Sprintf("Error creating response for transaction: %d: %s", pkt.TransactionID, err))
 			continue
 		}
 		if response == nil {
-			s.log("dhcpv6", fmt.Sprintf("Don't know how to respond to packet type: %d (transaction id %s)", pkt.Type, pkt.TransactionID))
+			s.log("dhcpv6", fmt.Sprintf("Don't know how to respond to packet type: %d (transaction id %d)", pkt.Type, pkt.TransactionID))
 			continue
 		}
 
