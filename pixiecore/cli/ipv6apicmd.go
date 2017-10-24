@@ -26,9 +26,15 @@ var ipv6ApiCmd = &cobra.Command{
 		}
 
 		s := pixiecorev6.NewServerV6()
+		s.Log = logWithStdFmt
+		debug, err := cmd.Flags().GetBool("debug")
+		if err != nil {
+			s.Debug = logWithStdFmt
+		}
+		if debug { s.Debug = logWithStdFmt }
 
 		if addr == "" {
-			fatalf("Please specify address to listen on")
+			fatalf("Please specify address to bind to")
 		} else {
 		}
 		if apiUrl == "" {
@@ -45,11 +51,12 @@ var ipv6ApiCmd = &cobra.Command{
 func serverv6ApiConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("listen-addr", "", "", "IPv6 address to listen on")
 	cmd.Flags().StringP("api-request-url", "", "", "Ipv6-specific API server url")
+	cmd.Flags().Duration("api-request-timeout", 5*time.Second, "Timeout for request to the API server")
+	cmd.Flags().Bool("debug", false, "Enable debug-level logging")
 }
 
 func init() {
 	rootCmd.AddCommand(ipv6ApiCmd)
 	serverv6ApiConfigFlags(ipv6ApiCmd)
-	ipv6ApiCmd.Flags().Duration("api-request-timeout", 5*time.Second, "Timeout for request to the API server")
 }
 

@@ -22,6 +22,7 @@ import (
 
 // qemu-system-x86_64 -L . --bios /usr/share/edk2-firmware/ipv6/OVMF.fd -netdev bridge,br=br1,id=net0 -device virtio-net-pci,netdev=net0
 // sudo ./pixiecore bootipv6 --listen-addr=2001:db8:f00f:cafe::4/64 --httpboot-url=http://[2001:db8:f00f:cafe::4]/bootx64.efi --ipxe-url=http://[2001:db8:f00f:cafe::4]/script.ipxe
+// sudo ./pixiecore ipv6api --listen-addr=2001:db8:f00f:cafe::4  --api-request-url=http://[2001:db8:f00f:cafe::4]:8888
 
 func main() {
 	cli.Ipxe[pixiecore.FirmwareX86PC] = ipxe.MustAsset("undionly.kpxe")

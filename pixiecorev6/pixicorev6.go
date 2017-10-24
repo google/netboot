@@ -2,7 +2,6 @@ package pixiecorev6
 
 import (
 	"go.universe.tf/netboot/dhcp6"
-	"sync"
 	"fmt"
 	"time"
 	"encoding/binary"
@@ -17,18 +16,13 @@ type ServerV6 struct {
 
 	errs chan error
 
-	eventsMu sync.Mutex
-
 	Log func(subsystem, msg string)
 	Debug func(subsystem, msg string)
 }
 
 func NewServerV6() *ServerV6 {
-	log := func(subsystem, msg string) { fmt.Printf("[%s] %s", subsystem, msg) }
 	ret := &ServerV6{
 		Port: "547",
-		Log: log,
-		Debug: log,
 	}
 	return ret
 }
@@ -41,7 +35,7 @@ func (s *ServerV6) Serve() error {
 		return err
 	}
 
-	s.log("dhcp", "new connection...")
+	s.debug("dhcp", "new connection...")
 
 	// 5 buffer slots, one for each goroutine, plus one for
 	// Shutdown(). We only ever pull the first error out, but shutdown
@@ -50,12 +44,9 @@ func (s *ServerV6) Serve() error {
 	// blocking.
 	s.errs = make(chan error, 6)
 
-	//s.debug("Init", "Starting Pixiecore goroutines")
 	s.SetDUID(dhcp.SourceHardwareAddress())
 
 	addressPool := dhcp6.NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::10"), net.ParseIP("2001:db8:f00f:cafe::100"), 1850)
-//	bootConfiguration := dhcp6.MakeStaticBootConfiguration("http://[2001:db8:f00f:cafe::4]/bootx64.efi", "http://[2001:db8:f00f:cafe::4]/script.ipxe")
-//	bootConfiguration := dhcp6.MakeApiBootConfiguration("http://[2001:db8:f00f:cafe::4]:8888/", 10 *time.Second)
 	packetBuilder := dhcp6.MakePacketBuilder(s.Duid, 1800, 1850, s.BootUrls, addressPool)
 
 	go func() { s.errs <- s.serveDHCP(dhcp, packetBuilder) }()

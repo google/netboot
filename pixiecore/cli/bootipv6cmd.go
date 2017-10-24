@@ -26,8 +26,15 @@ var bootIPv6Cmd = &cobra.Command{
 
 		s := pixiecorev6.NewServerV6()
 
+		s.Log = logWithStdFmt
+		debug, err := cmd.Flags().GetBool("debug")
+		if err != nil {
+			s.Debug = logWithStdFmt
+		}
+		if debug { s.Debug = logWithStdFmt }
+
 		if addr == "" {
-			fatalf("Please specify address to listen on")
+			fatalf("Please specify address to bind to")
 		} else {
 		}
 		if ipxeUrl == "" {
@@ -48,6 +55,7 @@ func serverv6ConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("listen-addr", "", "", "IPv6 address to listen on")
 	cmd.Flags().StringP("ipxe-url", "", "", "IPXE config file url, e.g. http://[2001:db8:f00f:cafe::4]/script.ipxe")
 	cmd.Flags().StringP("httpboot-url", "", "", "HTTPBoot url, e.g. http://[2001:db8:f00f:cafe::4]/bootx64.efi")
+	cmd.Flags().Bool("debug", false, "Enable debug-level logging")
 }
 
 func init() {

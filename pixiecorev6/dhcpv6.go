@@ -6,18 +6,18 @@ import (
 )
 
 func (s *ServerV6) serveDHCP(conn *dhcp6.Conn, packetBuilder *dhcp6.PacketBuilder) error {
-	s.log("dhcpv6", "Waiting for packets...\n")
+	s.debug("dhcpv6", "Waiting for packets...\n")
 	for {
 		pkt, src, err := conn.RecvDHCP()
 		if err != nil {
 			return fmt.Errorf("Error receiving DHCP packet: %s", err)
 		}
 		if err := pkt.ShouldDiscard(s.Duid); err != nil {
-			s.log("dhcpv6", fmt.Sprintf("Discarding (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, err))
+			s.debug("dhcpv6", fmt.Sprintf("Discarding (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, err))
 			continue
 		}
 
-		s.log("dhcpv6", fmt.Sprintf("Received (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, pkt.Options.HumanReadable()))
+		s.debug("dhcpv6", fmt.Sprintf("Received (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, pkt.Options.HumanReadable()))
 
 		response, err := packetBuilder.BuildResponse(pkt)
 		if err != nil {
@@ -40,6 +40,6 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn, packetBuilder *dhcp6.PacketBuilde
 			continue
 		}
 
-		s.log("dhcpv6", fmt.Sprintf("Sent (%d) packet (%d): %s\n", response.Type, response.TransactionID, response.Options.HumanReadable()))
+		s.debug("dhcpv6", fmt.Sprintf("Sent (%d) packet (%d): %s\n", response.Type, response.TransactionID, response.Options.HumanReadable()))
 	}
 }
