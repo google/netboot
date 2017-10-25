@@ -44,7 +44,7 @@ func MakeOption(id uint16, value []byte) *Option {
 	return &Option{ Id: id, Length: uint16(len(value)), Value: value}
 }
 
-type Options map[uint16]*Option
+type Options map[uint16][]*Option
 
 func MakeOptions(bs []byte) (Options, error) {
 	to_ret := make(Options)
@@ -54,7 +54,6 @@ func MakeOptions(bs []byte) (Options, error) {
 		switch optionId {
 			// parse client_id
 			// parse server_id
-			// parse IaNa # do I need to support IaTa?
 			//parse ipaddr
 		case OptOro:
 			if optionLength% 2 != 0 {
@@ -66,7 +65,10 @@ func MakeOptions(bs []byte) (Options, error) {
 				return nil, fmt.Errorf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
 			}
 		}
-		to_ret[optionId] = &Option{ Id: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]}
+		_, present := to_ret[optionId]; if !present {
+			to_ret[optionId] = make([]*Option, 1)
+		}
+		to_ret[optionId] = append(to_ret[optionId], &Option{ Id: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]})
 		bs = bs[4+optionLength:]
 	}
 	return to_ret, nil
@@ -74,12 +76,14 @@ func MakeOptions(bs []byte) (Options, error) {
 
 func (o Options) HumanReadable() []string {
 	to_ret := make([]string, 0, len(o))
-	for _, opt := range(o) {
-		switch opt.Id {
-		case 3:
-			to_ret = append(to_ret, o.HumanReadableIaNa(*opt)...)
-		default:
-			to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", opt.Id, opt.Length, opt.Value, opt.Value))
+	for _, multipleOptions := range(o) {
+		for _, option := range(multipleOptions) {
+			switch option.Id {
+			case 3:
+				to_ret = append(to_ret, o.HumanReadableIaNa(*option)...)
+			default:
+				to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", option.Id, option.Length, option.Value, option.Value))
+			}
 		}
 	}
 	return to_ret
@@ -118,7 +122,10 @@ func (o Options) HumanReadableIaNa(opt Option) []string {
 }
 
 func (o Options) AddOption(option *Option) {
-	o[option.Id] = option
+	_, present := o[option.Id]; if !present {
+		o[option.Id] = make([]*Option, 1)
+	}
+	o[option.Id] = append(o[option.Id], option)
 }
 
 func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaAddr *Option) (*Option) {
@@ -141,13 +148,15 @@ func MakeIaAddrOption(addr net.IP, preferredLifetime, validLifetime uint32) (*Op
 
 func (o Options) Marshal() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte, 0, 1446))
-	for _, v := range(o) {
-		serialized, err := v.Marshal()
-		if err != nil {
-			return nil, fmt.Errorf("Error serializing option value: %s", err)
-		}
-		if err := binary.Write(buffer, binary.BigEndian, serialized); err != nil {
-			return nil, fmt.Errorf("Error serializing option value: %s", err)
+	for _, multipleOptions := range(o) {
+		for _, o := range (multipleOptions) {
+			serialized, err := o.Marshal()
+			if err != nil {
+				return nil, fmt.Errorf("Error serializing option value: %s", err)
+			}
+			if err := binary.Write(buffer, binary.BigEndian, serialized); err != nil {
+				return nil, fmt.Errorf("Error serializing option value: %s", err)
+			}
 		}
 	}
 	return buffer.Bytes(), nil
@@ -178,8 +187,8 @@ func (o Options) UnmarshalOptionRequestOption() map[uint16]bool {
 		return to_ret
 	}
 
-	oro_content := o[OptOro].Value
-	for i := 0; i < int(o[OptOro].Length)/2; i++ {
+	oro_content := o[OptOro][0].Value
+	for i := 0; i < int(o[OptOro][0].Length)/2; i++ {
 		to_ret[uint16(binary.BigEndian.Uint16(oro_content[i*2:(i+1)*2]))] = true
 	}
 	return to_ret
@@ -219,15 +228,27 @@ func (o Options) HasClientArchType() bool {
 func (o Options) ClientId() []byte {
 	opt, exists := o[OptClientId]
 	if exists {
-		return opt.Value
+		return opt[0].Value
 	}
 	return nil
 }
 
-func (o Options) IaNaId() []byte {
-	opt, exists := o[OptIaNa]
+func (o Options) ServerId() []byte {
+	opt, exists := o[OptServerId]
 	if exists {
-		return opt.Value[0:4]
+		return opt[0].Value
+	}
+	return nil
+}
+
+func (o Options) IaNaIds() [][]byte {
+	options, exists := o[OptIaNa]
+	if exists {
+		ret := make([][]byte, len(options))
+		for _, option := range(options) {
+			 ret = append(ret, option.Value[0:4])
+		}
+		return ret
 	}
 	return nil
 }
@@ -235,7 +256,7 @@ func (o Options) IaNaId() []byte {
 func (o Options) ClientArchType() uint16 {
 	opt, exists := o[OptClientArchType]
 	if exists {
-		return binary.BigEndian.Uint16(opt.Value)
+		return binary.BigEndian.Uint16(opt[0].Value)
 	}
 	return 0
 }

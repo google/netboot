@@ -75,45 +75,54 @@ func NewRandomAddressPool(poolStartAddress, poolEndAddress net.IP, validLifetime
 	return to_ret
 }
 
-func (p *RandomAddressPool) ReserveAddress(clientId, interfaceId []byte) *IdentityAssociation {
+func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]byte) []*IdentityAssociation {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	clientIdHash := p.calculateIaIdHash(clientId, interfaceId)
-	association, exists := p.identityAssociations[clientIdHash]; if exists {
-		return association
-	}
+	ret := make([]*IdentityAssociation, len(interfaceIds))
 
-	for {
-		rng := rand.New(rand.NewSource(p.timeNow().UnixNano()))
-		// we assume that ip addresses adhere to high 64 bits for net and subnet ids, low 64 bits are for host id rule
-		hostOffset := rng.Uint64()%(p.poolEndAddress.Uint64() - p.poolStartAddress.Uint64() + 1)
-		newIp := big.NewInt(0).Add(p.poolStartAddress, big.NewInt(0).SetUint64(hostOffset))
-		_, exists := p.usedIps[newIp.Uint64()]; if !exists {
-			timeNow := p.timeNow()
-			to_ret := &IdentityAssociation{ClientId: clientId,
-				InterfaceId: interfaceId,
-				IpAddress: newIp.Bytes(),
-				CreatedAt: timeNow }
-			p.identityAssociations[clientIdHash] = to_ret
-			p.usedIps[newIp.Uint64()] = struct{}{}
-			p.identityAssociationExpirations.Push(&AssociationExpiration{expiresAt: p.calculateAssociationExpiration(timeNow), ia: to_ret})
-			return to_ret
+	for _, interfaceId := range (interfaceIds) {
+		clientIdHash := p.calculateIaIdHash(clientId, interfaceId)
+		association, exists := p.identityAssociations[clientIdHash];
+		if exists {
+			ret = append(ret, association)
+			continue
+		}
+
+		for {
+			rng := rand.New(rand.NewSource(p.timeNow().UnixNano()))
+			// we assume that ip addresses adhere to high 64 bits for net and subnet ids, low 64 bits are for host id rule
+			hostOffset := rng.Uint64() % (p.poolEndAddress.Uint64() - p.poolStartAddress.Uint64() + 1)
+			newIp := big.NewInt(0).Add(p.poolStartAddress, big.NewInt(0).SetUint64(hostOffset))
+			_, exists := p.usedIps[newIp.Uint64()];
+			if !exists {
+				timeNow := p.timeNow()
+				association := &IdentityAssociation{ClientId: clientId,
+					InterfaceId: interfaceId,
+					IpAddress: newIp.Bytes(),
+					CreatedAt: timeNow}
+				p.identityAssociations[clientIdHash] = association
+				p.usedIps[newIp.Uint64()] = struct{}{}
+				p.identityAssociationExpirations.Push(&AssociationExpiration{expiresAt: p.calculateAssociationExpiration(timeNow), ia: association})
+				ret = append(ret, association)
+			}
 		}
 	}
-	return nil
+	return ret
 }
 
-func  (p *RandomAddressPool) ReleaseAddress(clientId, interfaceId []byte) {
+func  (p *RandomAddressPool) ReleaseAddresses(clientId []byte, interfaceIds [][]byte) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	association, exists := p.identityAssociations[p.calculateIaIdHash(clientId, interfaceId)]
-	if !exists {
-		return
+	for _, interfaceId := range(interfaceIds) {
+		association, exists := p.identityAssociations[p.calculateIaIdHash(clientId, interfaceId)]
+		if !exists {
+			continue
+		}
+		delete(p.usedIps, big.NewInt(0).SetBytes(association.IpAddress).Uint64())
+		delete(p.identityAssociations, p.calculateIaIdHash(clientId, interfaceId))
 	}
-	delete(p.usedIps, big.NewInt(0).SetBytes(association.IpAddress).Uint64())
-	delete(p.identityAssociations, p.calculateIaIdHash(clientId, interfaceId))
 }
 
 func (p *RandomAddressPool) ExpireIdentityAssociations() {

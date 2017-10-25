@@ -13,6 +13,6 @@ type IdentityAssociation struct {
 }
 
 type AddressPool interface {
-	ReserveAddress(clientId, interfaceId []byte) *IdentityAssociation
-	ReleaseAddress(clientId, interfaceId []byte)
+	ReserveAddresses(clientId []byte, interfaceIds [][]byte) []*IdentityAssociation
+	ReleaseAddresses(clientId []byte, interfaceIds [][]byte)
 }
