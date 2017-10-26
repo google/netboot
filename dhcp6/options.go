@@ -123,7 +123,7 @@ func (o Options) HumanReadableIaNa(opt Option) []string {
 
 func (o Options) AddOption(option *Option) {
 	_, present := o[option.Id]; if !present {
-		o[option.Id] = make([]*Option, 1)
+		o[option.Id] = make([]*Option, 0)
 	}
 	o[option.Id] = append(o[option.Id], option)
 }
@@ -183,7 +183,7 @@ func (o *Option) Marshal() ([]byte, error) {
 func (o Options) UnmarshalOptionRequestOption() map[uint16]bool {
 	to_ret := make(map[uint16]bool)
 
-	if o[OptOro] == nil {
+	_, present := o[OptOro]; if !present {
 		return to_ret
 	}
 
@@ -243,14 +243,14 @@ func (o Options) ServerId() []byte {
 
 func (o Options) IaNaIds() [][]byte {
 	options, exists := o[OptIaNa]
+	ret := make([][]byte, 0)
 	if exists {
-		ret := make([][]byte, len(options))
 		for _, option := range(options) {
 			 ret = append(ret, option.Value[0:4])
 		}
 		return ret
 	}
-	return nil
+	return ret
 }
 
 func (o Options) ClientArchType() uint16 {
@@ -259,5 +259,13 @@ func (o Options) ClientArchType() uint16 {
 		return binary.BigEndian.Uint16(opt[0].Value)
 	}
 	return 0
+}
+
+func (o Options) BootfileUrl() []byte {
+	opt, exists := o[OptBootfileUrl]
+	if exists {
+		return opt[0].Value
+	}
+	return nil
 }
 

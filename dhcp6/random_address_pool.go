@@ -79,7 +79,8 @@ func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]b
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	ret := make([]*IdentityAssociation, len(interfaceIds))
+	ret := make([]*IdentityAssociation, 0)
+	rng := rand.New(rand.NewSource(p.timeNow().UnixNano()))
 
 	for _, interfaceId := range (interfaceIds) {
 		clientIdHash := p.calculateIaIdHash(clientId, interfaceId)
@@ -88,9 +89,7 @@ func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]b
 			ret = append(ret, association)
 			continue
 		}
-
 		for {
-			rng := rand.New(rand.NewSource(p.timeNow().UnixNano()))
 			// we assume that ip addresses adhere to high 64 bits for net and subnet ids, low 64 bits are for host id rule
 			hostOffset := rng.Uint64() % (p.poolEndAddress.Uint64() - p.poolStartAddress.Uint64() + 1)
 			newIp := big.NewInt(0).Add(p.poolStartAddress, big.NewInt(0).SetUint64(hostOffset))
@@ -105,9 +104,11 @@ func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]b
 				p.usedIps[newIp.Uint64()] = struct{}{}
 				p.identityAssociationExpirations.Push(&AssociationExpiration{expiresAt: p.calculateAssociationExpiration(timeNow), ia: association})
 				ret = append(ret, association)
+				break
 			}
 		}
 	}
+
 	return ret
 }
 

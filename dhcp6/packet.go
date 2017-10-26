@@ -109,7 +109,7 @@ func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
 		return fmt.Errorf("'Request' packet has no server id option")
 	}
 	if bytes.Compare(options.ServerId(), serverDuid) != 0 {
-		return fmt.Errorf("'Request' packet's server id option (%d) is different from ours (%d)", options[OptServerId].Value, serverDuid)
+		return fmt.Errorf("'Request' packet's server id option (%d) is different from ours (%d)", options.ServerId(), serverDuid)
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func ShouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
 		return fmt.Errorf("'Information-request' packet has an IA option present")
 	}
 	if options.HasServerId() && (bytes.Compare(options.ServerId(), serverDuid) != 0) {
-		return fmt.Errorf("'Information-request' packet's server id option (%d) is different from ours (%d)", options[OptServerId].Value, serverDuid)
+		return fmt.Errorf("'Information-request' packet's server id option (%d) is different from ours (%d)", options.ServerId(), serverDuid)
 	}
 	return nil
 }
