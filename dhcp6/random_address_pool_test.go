@@ -15,9 +15,9 @@ func TestReserveAddress(t *testing.T) {
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
-	pool := NewRandomAddressPool(expectedIp1, expectedIp2, expectedMaxLifetime)
+	pool := NewRandomAddressPool(expectedIp1, 2, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	ias := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId1, expectedIaId2})
+	ias, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId1, expectedIaId2})
 
 	if len(ias) != 2 {
 		t.Fatalf("Expected 2 identity associations but received %d", len(ias))
@@ -55,7 +55,7 @@ func TestReserveAddressUpdatesAddressPool(t *testing.T) {
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
-	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), expectedMaxLifetime)
+	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
 	pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
 	expectedIdx := pool.calculateIaIdHash(expectedClientId, expectedIaId)
@@ -76,7 +76,7 @@ func TestReserveAddressKeepsTrackOfUsedAddresses(t *testing.T) {
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
-	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), expectedMaxLifetime)
+	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
 	pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
 
@@ -91,7 +91,7 @@ func TestReserveAddressKeepsTrackOfAssociationExpiration(t *testing.T) {
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
-	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), expectedMaxLifetime)
+	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
 	pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
 
@@ -111,10 +111,10 @@ func TestReserveAddressReturnsExistingAssociation(t *testing.T) {
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
-	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), expectedMaxLifetime)
+	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	firstAssociation := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
-	secondAssociation := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
+	firstAssociation, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
+	secondAssociation, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
 
 	if len(firstAssociation) < 1 {
 		t.Fatalf("No associations returned from the first call to ReserveAddresses")
@@ -133,9 +133,9 @@ func TestReleaseAddress(t *testing.T) {
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
-	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), net.ParseIP("2001:db8:f00f:cafe::1"), expectedMaxLifetime)
+	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	a := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
+	a, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
 
 	pool.ReleaseAddresses(expectedClientId, [][]byte{expectedIaId})
 

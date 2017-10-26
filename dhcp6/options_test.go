@@ -77,7 +77,24 @@ func TestMakeIaNaOption(t *testing.T) {
 	}
 }
 
+func TestMakeStatusOption(t *testing.T) {
+	expectedMessage := "Boom!"
+	expectedStatusCode := uint16(2)
+	noAddrOption := MakeStatusOption(expectedStatusCode, expectedMessage)
 
+	if noAddrOption.Id != OptStatusCode {
+		t.Fatalf("Expected option id %d, got %d", OptStatusCode, noAddrOption.Id)
+	}
+	if noAddrOption.Length != uint16(2 + len(expectedMessage)) {
+		t.Fatalf("Expected option length of %d, got %d", 2 + len(expectedMessage), noAddrOption.Length)
+	}
+	if binary.BigEndian.Uint16(noAddrOption.Value[0:2]) != expectedStatusCode {
+		t.Fatalf("Expected status code 2, got %d", binary.BigEndian.Uint16(noAddrOption.Value[0:2]))
+	}
+	if string(noAddrOption.Value[2:]) != expectedMessage {
+		t.Fatalf("Expected message %s, got %s", expectedMessage, string(noAddrOption.Value[2:]))
+	}
+}
 
 func TestUnmarshalFailsIfOROLengthIsOdd(t *testing.T) {
 	in := []byte{0, 6, 0, 3, 0, 1, 1}

@@ -128,7 +128,7 @@ func (o Options) AddOption(option *Option) {
 	o[option.Id] = append(o[option.Id], option)
 }
 
-func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaAddr *Option) (*Option) {
+func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaAddr *Option) *Option {
 	serializedIaAddr, _ := iaAddr.Marshal()
 	value := make([]byte, 12 + len(serializedIaAddr))
 	copy(value[0:], iaid[0:4])
@@ -138,12 +138,19 @@ func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaAddr *Option) (*Option) {
 	return MakeOption(OptIaNa, value)
 }
 
-func MakeIaAddrOption(addr net.IP, preferredLifetime, validLifetime uint32) (*Option) {
+func MakeIaAddrOption(addr net.IP, preferredLifetime, validLifetime uint32) *Option {
 	value := make([]byte, 24)
 	copy(value[0:], addr)
 	binary.BigEndian.PutUint32(value[16:], preferredLifetime)
 	binary.BigEndian.PutUint32(value[20:], validLifetime)
 	return MakeOption(OptIaAddr, value)
+}
+
+func MakeStatusOption(statusCode uint16, message string) *Option {
+	value := make([]byte, 2 + len(message))
+	binary.BigEndian.PutUint16(value[0:], statusCode)
+	copy(value[2:], []byte(message))
+	return MakeOption(OptStatusCode, value)
 }
 
 func (o Options) Marshal() ([]byte, error) {

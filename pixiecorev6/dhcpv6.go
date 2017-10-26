@@ -22,7 +22,12 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn, packetBuilder *dhcp6.PacketBuilde
 		response, err := packetBuilder.BuildResponse(pkt)
 		if err != nil {
 			s.log("dhcpv6", fmt.Sprintf("Error creating response for transaction: %d: %s", pkt.TransactionID, err))
-			continue
+			if response == nil {
+				s.log("dhcpv6", fmt.Sprintf("Dropping the packet"))
+				continue
+			} else {
+				s.log("dhcpv6", fmt.Sprintf("Will notify the client"))
+			}
 		}
 		if response == nil {
 			s.log("dhcpv6", fmt.Sprintf("Don't know how to respond to packet type: %d (transaction id %d)", pkt.Type, pkt.TransactionID))

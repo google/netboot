@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"bytes"
 	"encoding/binary"
+	"hash/fnv"
 )
 
 type MessageType uint8
@@ -136,7 +137,10 @@ func (b *PacketBuilder) BuildResponse(in *Packet) (*Packet, error) {
 		if err != nil {
 			return nil, err
 		}
-		associations := b.Addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		associations, err := b.Addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		if err != nil {
+			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, in.Options.ClientId(), err), err
+		}
 		return b.MakeMsgAdvertise(in.TransactionID, in.Options.ClientId(),
 			in.Options.ClientArchType(), associations, bootFileUrl, b.Configuration.GetPreference()), nil
 	case MsgRequest:
@@ -144,7 +148,11 @@ func (b *PacketBuilder) BuildResponse(in *Packet) (*Packet, error) {
 		if err != nil {
 			return nil, err
 		}
-		associations := b.Addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		associations, err := b.Addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		if err != nil {
+			return b.MakeMsgReplyWithNoAddrsAvailable(in.TransactionID, in.Options.ClientId(),
+				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIds()), bootFileUrl, err), err
+		}
 		return b.MakeMsgReply(in.TransactionID, in.Options.ClientId(),
 			in.Options.ClientArchType(), associations, bootFileUrl), nil
 	case MsgInformationRequest:
@@ -225,6 +233,35 @@ func (b *PacketBuilder) MakeMsgReleaseReply(transactionId [3]byte, clientId []by
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
+func (b *PacketBuilder) MakeMsgAdvertiseWithNoAddrsAvailable(transactionId [3]byte, clientId []byte, err error) *Packet {
+	ret_options := make(Options)
+	ret_options.AddOption(MakeOption(OptClientId, clientId))
+	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	ret_options.AddOption(MakeStatusOption(2, err.Error())) // NoAddrAvailable
+	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
+}
+
+func (b *PacketBuilder) MakeMsgReplyWithNoAddrsAvailable(transactionId [3]byte, clientId []byte, clientArchType uint16,
+		associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileUrl []byte, err error) *Packet {
+	ret_options := make(Options)
+	ret_options.AddOption(MakeOption(OptClientId, clientId))
+	for _, association := range(associations) {
+		ret_options.AddOption(MakeIaNaOption(association.InterfaceId, b.calculateT1(), b.calculateT2(),
+			MakeIaAddrOption(association.IpAddress, b.PreferredLifetime, b.ValidLifetime)))
+	}
+	for _, ia := range(iasWithoutAddresses) {
+		ret_options.AddOption(MakeIaNaOption(ia, b.calculateT1(), b.calculateT2(),
+			MakeStatusOption(2, err.Error())))
+	}
+	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	if 0x10 ==  clientArchType { // HTTPClient
+		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+	}
+	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
+
+	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
+}
+
 func (b *PacketBuilder) calculateT1() uint32 {
 	return b.PreferredLifetime / 2
 }
@@ -243,4 +280,26 @@ func (b *PacketBuilder) ExtractLLAddressOrId(optClientId []byte) []byte {
 	default:
 		return optClientId[2:]
 	}
+}
+
+func iasWithoutAddesses(availableAssociations []*IdentityAssociation, allIas [][]byte) [][]byte {
+	ret := make([][]byte, 0)
+	iasWithAddresses := make(map[uint64]bool)
+
+	for _, association := range(availableAssociations) {
+		iasWithAddresses[calculateIaIdHash(association.InterfaceId)] = true
+	}
+
+	for _, ia := range(allIas) {
+		_, exists := iasWithAddresses[calculateIaIdHash(ia)]; if !exists {
+			ret = append(ret, ia)
+		}
+	}
+	return ret
+}
+
+func calculateIaIdHash(interfaceId []byte) uint64 {
+	h := fnv.New64a()
+	h.Write(interfaceId)
+	return h.Sum64()
 }
