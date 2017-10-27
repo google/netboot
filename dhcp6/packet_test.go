@@ -10,7 +10,7 @@ import (
 func TestMakeMsgAdvertise(t *testing.T) {
 	expectedClientId := []byte("clientid")
 	expectedServerId := []byte("serverid")
-	expectedInterfaceId := []byte("interfaceid")
+	expectedInterfaceId := []byte("id-1")
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileUrl := []byte("http://bootfileurl")
@@ -65,7 +65,7 @@ func TestMakeMsgAdvertise(t *testing.T) {
 }
 
 func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
-	identityAssociation := &IdentityAssociation{IpAddress: net.ParseIP("2001:db8:f00f:cafe::1"), InterfaceId: []byte("interfaceid")}
+	identityAssociation := &IdentityAssociation{IpAddress: net.ParseIP("2001:db8:f00f:cafe::1"), InterfaceId: []byte("id-1")}
 
 	builder := MakePacketBuilder([]byte("serverid"), 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
@@ -89,7 +89,7 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("interfaceid")}
+	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
 	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
@@ -162,7 +162,7 @@ func TestMakeMsgReply(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("interfaceid")}
+	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
 	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
@@ -219,7 +219,7 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("interfaceid")}
+	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
 	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
@@ -238,6 +238,61 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	}
 	if string(expectedBootFileUrl) != string(bootfileUrlOption) {
 		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	}
+}
+
+func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
+	expectedClientId := []byte("clientid")
+	expectedServerId := []byte("serverid")
+	transactionId := [3]byte{'1', '2', '3'}
+	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileUrl := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
+	expectedErrorMessage := "Boom!"
+
+	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
+		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+
+	msg := builder.MakeMsgReplyWithNoAddrsAvailable(transactionId, expectedClientId, 0x10,
+		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileUrl,
+		fmt.Errorf(expectedErrorMessage))
+
+	iaNaOption := msg.Options[OptIaNa]
+	if iaNaOption == nil {
+		t.Fatalf("interface non-temporary association options should be present")
+	}
+	if (len(iaNaOption)) != 2 {
+		t.Fatalf("Expected 2 identity associations, got %d", len(iaNaOption))
+	}
+	var okIaNaOption, failedIaNaOption []byte
+	if string(iaNaOption[0].Value[0:4]) == string("id-1") {
+		okIaNaOption = iaNaOption[0].Value
+		failedIaNaOption = iaNaOption[1].Value
+	} else {
+		okIaNaOption = iaNaOption[1].Value
+		failedIaNaOption = iaNaOption[0].Value
+	}
+
+	possiblyIaAddrOption, err := UnmarshalOption(okIaNaOption[12:])
+	if err != nil {
+		t.Fatalf("Failed to unmarshal IaNa options: %s", err)
+	}
+	if possiblyIaAddrOption.Id != OptIaAddr {
+		t.Fatalf("Expected option 5 (ia address), got %d", possiblyIaAddrOption.Id)
+	}
+
+	possiblyStatusOption, err := UnmarshalOption(failedIaNaOption[12:])
+	if err != nil {
+		t.Fatalf("Failed to unmarshal IaNa options: %s", err)
+	}
+	if possiblyStatusOption.Id != OptStatusCode {
+		t.Fatalf("Expected option 13 (status code), got %d", possiblyStatusOption.Id)
+	}
+	if binary.BigEndian.Uint16(possiblyStatusOption.Value[0:2]) != uint16(2) {
+		t.Fatalf("Expected status code 2, got %d", binary.BigEndian.Uint16(possiblyStatusOption.Value[0:2]))
+	}
+	if string(possiblyStatusOption.Value[2:]) != expectedErrorMessage {
+		t.Fatalf("Expected message %s, got %s", expectedErrorMessage, string(possiblyStatusOption.Value[2:]))
 	}
 }
 

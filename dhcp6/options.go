@@ -49,29 +49,34 @@ type Options map[uint16][]*Option
 func MakeOptions(bs []byte) (Options, error) {
 	to_ret := make(Options)
 	for len(bs) > 0 {
-		optionLength := uint16(binary.BigEndian.Uint16(bs[2:4]))
-		optionId := uint16(binary.BigEndian.Uint16(bs[0:2]))
-		switch optionId {
-			// parse client_id
-			// parse server_id
-			//parse ipaddr
-		case OptOro:
-			if optionLength% 2 != 0 {
-				return nil, fmt.Errorf("OptionID request for options (6) length should be even number of bytes: %d", optionLength)
-			}
-		default:
-			if len(bs[4:]) < int(optionLength) {
-				fmt.Printf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
-				return nil, fmt.Errorf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
-			}
+		o, err := UnmarshalOption(bs)
+		if err != nil {
+			return nil, err
 		}
-		_, present := to_ret[optionId]; if !present {
-			to_ret[optionId] = make([]*Option, 1)
-		}
-		to_ret[optionId] = append(to_ret[optionId], &Option{ Id: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]})
-		bs = bs[4+optionLength:]
+		to_ret[o.Id] = append(to_ret[o.Id], &Option{ Id: o.Id, Length: o.Length, Value: bs[4 : 4+o.Length]})
+		bs = bs[4+o.Length:]
 	}
 	return to_ret, nil
+}
+
+func UnmarshalOption(bs []byte) (*Option, error) {
+	optionLength := uint16(binary.BigEndian.Uint16(bs[2:4]))
+	optionId := uint16(binary.BigEndian.Uint16(bs[0:2]))
+	switch optionId {
+	// parse client_id
+	// parse server_id
+	//parse ipaddr
+	case OptOro:
+		if optionLength% 2 != 0 {
+			return nil, fmt.Errorf("OptionID request for options (6) length should be even number of bytes: %d", optionLength)
+		}
+	default:
+		if len(bs[4:]) < int(optionLength) {
+			fmt.Printf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
+			return nil, fmt.Errorf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
+		}
+	}
+	return &Option{ Id: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]}, nil
 }
 
 func (o Options) HumanReadable() []string {
@@ -128,13 +133,13 @@ func (o Options) AddOption(option *Option) {
 	o[option.Id] = append(o[option.Id], option)
 }
 
-func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaAddr *Option) *Option {
-	serializedIaAddr, _ := iaAddr.Marshal()
-	value := make([]byte, 12 + len(serializedIaAddr))
+func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaOption *Option) *Option {
+	serializedIaOption, _ := iaOption.Marshal()
+	value := make([]byte, 12 + len(serializedIaOption))
 	copy(value[0:], iaid[0:4])
 	binary.BigEndian.PutUint32(value[4:], t1)
 	binary.BigEndian.PutUint32(value[8:], t2)
-	copy(value[12:], serializedIaAddr)
+	copy(value[12:], serializedIaOption)
 	return MakeOption(OptIaNa, value)
 }
 
@@ -201,7 +206,7 @@ func (o Options) UnmarshalOptionRequestOption() map[uint16]bool {
 	return to_ret
 }
 
-func (o Options) RequestedBootFileUrlOption() bool {
+func (o Options) HasBootFileUrlOption() bool {
 	requested_options := o.UnmarshalOptionRequestOption()
 	_, present := requested_options[OptBootfileUrl]
 	return present

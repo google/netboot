@@ -86,7 +86,7 @@ func (p *Packet) ShouldDiscard(serverDuid []byte) error {
 
 func ShouldDiscardSolicit(p *Packet) error {
 	options := p.Options
-	if !options.RequestedBootFileUrlOption() {
+	if !options.HasBootFileUrlOption() {
 		return fmt.Errorf("'Solicit' packet doesn't have file url option")
 	}
 	if !options.HasClientId() {
@@ -100,7 +100,7 @@ func ShouldDiscardSolicit(p *Packet) error {
 
 func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
 	options := p.Options
-	if !options.RequestedBootFileUrlOption() {
+	if !options.HasBootFileUrlOption() {
 		return fmt.Errorf("'Request' packet doesn't have file url option")
 	}
 	if !options.HasClientId() {
@@ -117,7 +117,7 @@ func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
 
 func ShouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
 	options := p.Options
-	if !options.RequestedBootFileUrlOption() {
+	if !options.HasBootFileUrlOption() {
 		return fmt.Errorf("'Information-request' packet doesn't have boot file url option")
 	}
 	if options.HasIaNa() || options.HasIaTa() {
