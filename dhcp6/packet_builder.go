@@ -67,7 +67,7 @@ func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId []byte,
 	}
 	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
 	if preference != nil {ret_options.AddOption(MakeOption(OptPreference, preference))}
-	ret_options.AddOption(MakeDNSServersOption(dnsServers))
+	if len(dnsServers) > 0 { ret_options.AddOption(MakeDNSServersOption(dnsServers)) }
 
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
 }
@@ -89,7 +89,7 @@ func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId []byte, cli
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
 	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
-	ret_options.AddOption(MakeDNSServersOption(dnsServers))
+	if len(dnsServers) > 0 { ret_options.AddOption(MakeDNSServersOption(dnsServers)) }
 
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
@@ -103,7 +103,7 @@ func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, cl
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
 	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
-	ret_options.AddOption(MakeDNSServersOption(dnsServers))
+	if len(dnsServers) > 0 { ret_options.AddOption(MakeDNSServersOption(dnsServers)) }
 
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }

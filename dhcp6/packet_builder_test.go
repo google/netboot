@@ -62,6 +62,33 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	if preferenceOption != nil {
 		t.Fatalf("Preference option shouldn't be set")
 	}
+
+	dnsServersOption := msg.Options[OptRecursiveDns]
+	if dnsServersOption == nil {
+		t.Fatalf("DNS servers option should be set")
+	}
+	if string(dnsServersOption[0].Value) != string(expectedDnsServerIp) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIp, net.IP(dnsServersOption[0].Value))
+	}
+}
+
+func TestMakeMsgAdvertiseShouldSkipDnsServersIfNoneConfigured(t *testing.T) {
+	expectedClientId := []byte("clientid")
+	expectedServerId := []byte("serverid")
+	expectedInterfaceId := []byte("id-1")
+	transactionId := [3]byte{'1', '2', '3'}
+	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileUrl := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: expectedInterfaceId}
+
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
+
+	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
+		expectedBootFileUrl, nil, []net.IP{})
+
+	_, exists := msg.Options[OptRecursiveDns]; if exists {
+		t.Fatalf("DNS servers option should not be set")
+	}
 }
 
 func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
@@ -208,6 +235,32 @@ func TestMakeMsgReply(t *testing.T) {
 	if iaNaOption == nil {
 		t.Fatalf("interface non-temporary association option should be present")
 	}
+
+	dnsServersOption := msg.Options[OptRecursiveDns]
+	if dnsServersOption == nil {
+		t.Fatalf("DNS servers option should be set")
+	}
+	if string(dnsServersOption[0].Value) != string(expectedDnsServerIp) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIp, net.IP(dnsServersOption[0].Value))
+	}
+}
+
+func TestMakeMsgReplyShouldSkipDnsServersIfNoneWereConfigured(t *testing.T) {
+	expectedClientId := []byte("clientid")
+	expectedServerId := []byte("serverid")
+	transactionId := [3]byte{'1', '2', '3'}
+	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileUrl := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
+
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
+
+	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
+		make([][]byte, 0), expectedBootFileUrl, []net.IP{}, nil)
+
+	_, exists := msg.Options[OptRecursiveDns]; if exists {
+		t.Fatalf("Dns servers option shouldn't be present")
+	}
 }
 
 func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
@@ -339,6 +392,30 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	}
 	if string(expectedBootFileUrl) != string(bootfileUrlOption) {
 		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	}
+
+	dnsServersOption := msg.Options[OptRecursiveDns]
+	if dnsServersOption == nil {
+		t.Fatalf("DNS servers option should be set")
+	}
+	if string(dnsServersOption[0].Value) != string(expectedDnsServerIp) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIp, net.IP(dnsServersOption[0].Value))
+	}
+}
+
+func TestMakeMsgInformationRequestReplyShouldSkipDnsServersIfNoneWereConfigured(t *testing.T) {
+	expectedClientId := []byte("clientid")
+	expectedServerId := []byte("serverid")
+	transactionId := [3]byte{'1', '2', '3'}
+	expectedBootFileUrl := []byte("http://bootfileurl")
+
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
+
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11,
+		expectedBootFileUrl, []net.IP{})
+
+	_, exists := msg.Options[OptRecursiveDns]; if exists {
+		t.Fatalf("Dns servers option shouldn't be present")
 	}
 }
 
