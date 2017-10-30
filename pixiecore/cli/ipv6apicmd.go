@@ -6,6 +6,7 @@ import (
 	"go.universe.tf/netboot/pixiecorev6"
 	"go.universe.tf/netboot/dhcp6"
 	"time"
+	"net"
 )
 
 var ipv6ApiCmd = &cobra.Command{
@@ -40,14 +41,27 @@ var ipv6ApiCmd = &cobra.Command{
 		if apiUrl == "" {
 			fatalf("Please specify ipxe config file url")
 		}
-
 		s.Address = addr
 		preference, err := cmd.Flags().GetUint8("preference")
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-
 		s.BootConfig = dhcp6.MakeApiBootConfiguration(apiUrl, apiTimeout, preference, cmd.Flags().Changed("preference"))
+
+		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		addressPoolSize, err := cmd.Flags().GetUint64("address-pool-size")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		addressPoolValidLifetime, err := cmd.Flags().GetUint32("address-pool-lifetime")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		s.AddressPool = dhcp6.NewRandomAddressPool(net.ParseIP(addressPoolStart), addressPoolSize, addressPoolValidLifetime)
+		s.PacketBuilder = dhcp6.MakePacketBuilder(s.Duid, addressPoolValidLifetime - addressPoolValidLifetime*3/100, addressPoolValidLifetime)
 
 		fmt.Println(s.Serve())
 	},
@@ -59,6 +73,9 @@ func serverv6ApiConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().Duration("api-request-timeout", 5*time.Second, "Timeout for request to the API server")
 	cmd.Flags().Bool("debug", false, "Enable debug-level logging")
 	cmd.Flags().Uint8("preference", 255, "Set dhcp server preference value")
+	cmd.Flags().StringP("address-pool-start", "", "2001:db8:f00f:cafe:ffff::100", "Starting ip of the address pool, e.g. 2001:db8:f00f:cafe:ffff::100")
+	cmd.Flags().Uint64("address-pool-size", 50, "Address pool size")
+	cmd.Flags().Uint32("address-pool-lifetime", 1850, "Address pool ip address valid lifetime in seconds")
 }
 
 func init() {

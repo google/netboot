@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.universe.tf/netboot/pixiecorev6"
 	"go.universe.tf/netboot/dhcp6"
+	"net"
 )
 
 var bootIPv6Cmd = &cobra.Command{
@@ -51,6 +52,21 @@ var bootIPv6Cmd = &cobra.Command{
 		}
 		s.BootConfig = dhcp6.MakeStaticBootConfiguration(httpBootUrl, ipxeUrl, preference, cmd.Flags().Changed("preference"))
 
+		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		addressPoolSize, err := cmd.Flags().GetUint64("address-pool-size")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		addressPoolValidLifetime, err := cmd.Flags().GetUint32("address-pool-lifetime")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		s.AddressPool = dhcp6.NewRandomAddressPool(net.ParseIP(addressPoolStart), addressPoolSize, addressPoolValidLifetime)
+		s.PacketBuilder = dhcp6.MakePacketBuilder(s.Duid, addressPoolValidLifetime - addressPoolValidLifetime*3/100, addressPoolValidLifetime)
+
 		fmt.Println(s.Serve())
 	},
 }
@@ -61,6 +77,9 @@ func serverv6ConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("httpboot-url", "", "", "HTTPBoot url, e.g. http://[2001:db8:f00f:cafe::4]/bootx64.efi")
 	cmd.Flags().Bool("debug", false, "Enable debug-level logging")
 	cmd.Flags().Uint8("preference", 255, "Set dhcp server preference value")
+	cmd.Flags().StringP("address-pool-start", "", "2001:db8:f00f:cafe:ffff::100", "Starting ip of the address pool, e.g. 2001:db8:f00f:cafe:ffff::100")
+	cmd.Flags().Uint64("address-pool-size", 50, "Address pool size")
+	cmd.Flags().Uint32("address-pool-lifetime", 1850, "Address pool ip valid lifetime in seconds")
 }
 
 func init() {

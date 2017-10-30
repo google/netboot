@@ -9,46 +9,42 @@ type PacketBuilder struct {
 	ServerDuid        []byte
 	PreferredLifetime uint32
 	ValidLifetime     uint32
-	Configuration     BootConfiguration
-	Addresses         AddressPool
 }
 
-func MakePacketBuilder(serverDuid []byte, preferredLifetime, validLifetime uint32, bootFileUrl BootConfiguration,
-	addressPool AddressPool) *PacketBuilder {
-	return &PacketBuilder{ServerDuid: serverDuid, PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime,
-		Configuration: bootFileUrl, Addresses: addressPool}
+func MakePacketBuilder(serverDuid []byte, preferredLifetime, validLifetime uint32) *PacketBuilder {
+	return &PacketBuilder{ServerDuid: serverDuid, PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime}
 }
 
-func (b *PacketBuilder) BuildResponse(in *Packet) (*Packet, error) {
+func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguration, addresses AddressPool) (*Packet, error) {
 	switch in.Type {
 	case MsgSolicit:
-		bootFileUrl, err := b.Configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
-		associations, err := b.Addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		associations, err := addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
 		if err != nil {
 			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, in.Options.ClientId(), err), err
 		}
 		return b.MakeMsgAdvertise(in.TransactionID, in.Options.ClientId(),
-			in.Options.ClientArchType(), associations, bootFileUrl, b.Configuration.GetPreference()), nil
+			in.Options.ClientArchType(), associations, bootFileUrl, configuration.GetPreference()), nil
 	case MsgRequest:
-		bootFileUrl, err := b.Configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
-		associations, err := b.Addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		associations, err := addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
 		return b.MakeMsgReply(in.TransactionID, in.Options.ClientId(),
 				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIds()), bootFileUrl, err), err
 	case MsgInformationRequest:
-		bootFileUrl, err := b.Configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
 		return b.MakeMsgInformationRequestReply(in.TransactionID, in.Options.ClientId(),
 			in.Options.ClientArchType(), bootFileUrl), nil
 	case MsgRelease:
-		b.Addresses.ReleaseAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		addresses.ReleaseAddresses(in.Options.ClientId(), in.Options.IaNaIds())
 		return b.MakeMsgReleaseReply(in.TransactionID, in.Options.ClientId()), nil
 	default:
 		return nil, nil

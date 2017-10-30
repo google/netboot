@@ -16,8 +16,7 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: expectedInterfaceId}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
 		expectedBootFileUrl, nil)
@@ -67,8 +66,7 @@ func TestMakeMsgAdvertise(t *testing.T) {
 func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
 	identityAssociation := &IdentityAssociation{IpAddress: net.ParseIP("2001:db8:f00f:cafe::1"), InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder([]byte("serverid"), 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder([]byte("serverid"), 90, 100)
 
 	expectedPreference := []byte{128}
 	msg := builder.MakeMsgAdvertise([3]byte{'t', 'i', 'd'}, []byte("clientid"), 0x11,
@@ -91,8 +89,7 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x10, []*IdentityAssociation{identityAssociation},
 		expectedBootFileUrl, nil)
@@ -116,8 +113,7 @@ func TestMakeNoAddrsAvailable(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedMessage := "Boom!"
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgAdvertiseWithNoAddrsAvailable(transactionId, expectedClientId, fmt.Errorf(expectedMessage))
 
@@ -164,8 +160,7 @@ func TestMakeMsgReply(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
 		make([][]byte, 0), expectedBootFileUrl, nil)
@@ -221,8 +216,7 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
 		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0),
@@ -251,8 +245,7 @@ func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 	expectedErrorMessage := "Boom!"
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
 		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileUrl,
@@ -303,8 +296,7 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11, expectedBootFileUrl)
 
@@ -352,8 +344,7 @@ func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10, expectedBootFileUrl)
 
@@ -376,8 +367,7 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
-		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
+	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgReleaseReply(transactionId, expectedClientId)
 

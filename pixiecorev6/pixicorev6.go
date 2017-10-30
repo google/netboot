@@ -9,10 +9,13 @@ import (
 )
 
 type ServerV6 struct {
-	Address    string
-	Port       string
-	Duid       []byte
-	BootConfig dhcp6.BootConfiguration
+	Address    		string
+	Port       		string
+	Duid       		[]byte
+
+	BootConfig		dhcp6.BootConfiguration
+	PacketBuilder	*dhcp6.PacketBuilder
+	AddressPool 	dhcp6.AddressPool
 
 	errs chan error
 
@@ -46,10 +49,7 @@ func (s *ServerV6) Serve() error {
 
 	s.SetDUID(dhcp.SourceHardwareAddress())
 
-	addressPool := dhcp6.NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::10"), 90, 1850)
-	packetBuilder := dhcp6.MakePacketBuilder(s.Duid, 1800, 1850, s.BootConfig, addressPool)
-
-	go func() { s.errs <- s.serveDHCP(dhcp, packetBuilder) }()
+	go func() { s.errs <- s.serveDHCP(dhcp) }()
 
 	// Wait for either a fatal error, or Shutdown().
 	err = <-s.errs

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *ServerV6) serveDHCP(conn *dhcp6.Conn, packetBuilder *dhcp6.PacketBuilder) error {
+func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
 	s.debug("dhcpv6", "Waiting for packets...\n")
 	for {
 		pkt, src, err := conn.RecvDHCP()
@@ -19,7 +19,7 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn, packetBuilder *dhcp6.PacketBuilde
 
 		s.debug("dhcpv6", fmt.Sprintf("Received (%d) packet (%d): %s\n", pkt.Type, pkt.TransactionID, pkt.Options.HumanReadable()))
 
-		response, err := packetBuilder.BuildResponse(pkt)
+		response, err := s.PacketBuilder.BuildResponse(pkt, s.BootConfig, s.AddressPool)
 		if err != nil {
 			s.log("dhcpv6", fmt.Sprintf("Error creating response for transaction: %d: %s", pkt.TransactionID, err))
 			if response == nil {
