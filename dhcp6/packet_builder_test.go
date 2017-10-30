@@ -168,7 +168,7 @@ func TestMakeMsgReply(t *testing.T) {
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
-		expectedBootFileUrl)
+		make([][]byte, 0), expectedBootFileUrl, nil)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -224,8 +224,9 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
 
-	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10, []*IdentityAssociation{identityAssociation},
-		expectedBootFileUrl)
+	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0),
+		expectedBootFileUrl, nil)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -253,7 +254,7 @@ func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
 	builder := MakePacketBuilder(expectedServerId, 90, 100, nil,
 		NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, 100))
 
-	msg := builder.MakeMsgReplyWithNoAddrsAvailable(transactionId, expectedClientId, 0x10,
+	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
 		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileUrl,
 		fmt.Errorf(expectedErrorMessage))
 
