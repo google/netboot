@@ -158,6 +158,14 @@ func MakeStatusOption(statusCode uint16, message string) *Option {
 	return MakeOption(OptStatusCode, value)
 }
 
+func MakeDNSServersOption(addresses []net.IP) *Option {
+	value := make([]byte, 16*len(addresses))
+	for i, dnsAddress := range addresses {
+		copy(value[i*16:], dnsAddress)
+	}
+	return MakeOption(OptRecursiveDns, value)
+}
+
 func (o Options) Marshal() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte, 0, 1446))
 	for _, multipleOptions := range(o) {

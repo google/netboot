@@ -7,7 +7,10 @@ import (
 	"go.universe.tf/netboot/dhcp6"
 	"time"
 	"net"
+	"strings"
 )
+
+// pixiecore ipv6api --listen-addr=2001:db8:f00f:cafe::4  --api-request-url=http://[2001:db8:f00f:cafe::4]:8888
 
 var ipv6ApiCmd = &cobra.Command{
 	Use:   "ipv6api",
@@ -46,7 +49,18 @@ var ipv6ApiCmd = &cobra.Command{
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		s.BootConfig = dhcp6.MakeApiBootConfiguration(apiUrl, apiTimeout, preference, cmd.Flags().Changed("preference"))
+		dnsServers, err := cmd.Flags().GetString("dns-servers")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		dnsServerAddresses := make([]net.IP, 0)
+		if cmd.Flags().Changed("dns-servers") {
+			for _, dnsServerAddress := range strings.Split(dnsServers, ",") {
+				dnsServerAddresses = append(dnsServerAddresses, net.ParseIP(dnsServerAddress))
+			}
+		}
+		s.BootConfig = dhcp6.MakeApiBootConfiguration(apiUrl, apiTimeout, preference,
+			cmd.Flags().Changed("preference"), dnsServerAddresses)
 
 		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")
 		if err != nil {
@@ -76,6 +90,7 @@ func serverv6ApiConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("address-pool-start", "", "2001:db8:f00f:cafe:ffff::100", "Starting ip of the address pool, e.g. 2001:db8:f00f:cafe:ffff::100")
 	cmd.Flags().Uint64("address-pool-size", 50, "Address pool size")
 	cmd.Flags().Uint32("address-pool-lifetime", 1850, "Address pool ip address valid lifetime in seconds")
+	cmd.Flags().StringP("dns-servers", "", "", "Comma separated list of one or more dns server addresses")
 }
 
 func init() {

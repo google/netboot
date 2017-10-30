@@ -14,12 +14,13 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileUrl := []byte("http://bootfileurl")
+	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: expectedInterfaceId}
 
 	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
-		expectedBootFileUrl, nil)
+		expectedBootFileUrl, nil, []net.IP{expectedDnsServerIp})
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -70,7 +71,7 @@ func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
 
 	expectedPreference := []byte{128}
 	msg := builder.MakeMsgAdvertise([3]byte{'t', 'i', 'd'}, []byte("clientid"), 0x11,
-		[]*IdentityAssociation{identityAssociation}, []byte("http://bootfileurl"), expectedPreference)
+		[]*IdentityAssociation{identityAssociation}, []byte("http://bootfileurl"), expectedPreference, []net.IP{})
 
 	preferenceOption := msg.Options[OptPreference]
 	if preferenceOption == nil {
@@ -92,7 +93,7 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x10, []*IdentityAssociation{identityAssociation},
-		expectedBootFileUrl, nil)
+		expectedBootFileUrl, nil, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -158,12 +159,13 @@ func TestMakeMsgReply(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileUrl := []byte("http://bootfileurl")
+	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
 	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
-		make([][]byte, 0), expectedBootFileUrl, nil)
+		make([][]byte, 0), expectedBootFileUrl, []net.IP{expectedDnsServerIp}, nil)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -220,7 +222,7 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
 		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0),
-		expectedBootFileUrl, nil)
+		expectedBootFileUrl, []net.IP{}, nil)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -248,7 +250,7 @@ func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
 	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
 	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
-		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileUrl,
+		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileUrl, []net.IP{},
 		fmt.Errorf(expectedErrorMessage))
 
 	iaNaOption := msg.Options[OptIaNa]
@@ -295,10 +297,12 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedBootFileUrl := []byte("http://bootfileurl")
+	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
 
 	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11, expectedBootFileUrl)
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11,
+		expectedBootFileUrl, []net.IP{expectedDnsServerIp})
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -346,7 +350,8 @@ func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 
 	builder := MakePacketBuilder(expectedServerId, 90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10, expectedBootFileUrl)
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10,
+		expectedBootFileUrl, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {

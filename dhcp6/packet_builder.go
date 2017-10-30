@@ -3,6 +3,7 @@ package dhcp6
 import (
 	"hash/fnv"
 	"encoding/binary"
+	"net"
 )
 
 type PacketBuilder struct {
@@ -27,7 +28,7 @@ func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguratio
 			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, in.Options.ClientId(), err), err
 		}
 		return b.MakeMsgAdvertise(in.TransactionID, in.Options.ClientId(),
-			in.Options.ClientArchType(), associations, bootFileUrl, configuration.GetPreference()), nil
+			in.Options.ClientArchType(), associations, bootFileUrl, configuration.GetPreference(), configuration.GetRecursiveDns()), nil
 	case MsgRequest:
 		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
@@ -35,14 +36,15 @@ func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguratio
 		}
 		associations, err := addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
 		return b.MakeMsgReply(in.TransactionID, in.Options.ClientId(),
-				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIds()), bootFileUrl, err), err
+				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIds()), bootFileUrl,
+				configuration.GetRecursiveDns(), err), err
 	case MsgInformationRequest:
 		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
 		return b.MakeMsgInformationRequestReply(in.TransactionID, in.Options.ClientId(),
-			in.Options.ClientArchType(), bootFileUrl), nil
+			in.Options.ClientArchType(), bootFileUrl, configuration.GetRecursiveDns()), nil
 	case MsgRelease:
 		addresses.ReleaseAddresses(in.Options.ClientId(), in.Options.IaNaIds())
 		return b.MakeMsgReleaseReply(in.TransactionID, in.Options.ClientId()), nil
@@ -52,7 +54,7 @@ func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguratio
 }
 
 func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId []byte, clientArchType uint16,
-	associations []*IdentityAssociation, bootFileUrl, preference []byte) *Packet {
+	associations []*IdentityAssociation, bootFileUrl, preference []byte, dnsServers []net.IP) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
 	for _, association := range(associations) {
@@ -65,15 +67,13 @@ func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId []byte,
 	}
 	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
 	if preference != nil {ret_options.AddOption(MakeOption(OptPreference, preference))}
-
-	//ret_options.AddOption(OptRecursiveDns, net.ParseIP("2001:db8:f00f:cafe::1"))
-	//ret_options.AddOption(OptBootfileParam, []byte("http://")
+	ret_options.AddOption(MakeDNSServersOption(dnsServers))
 
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
 }
 
 func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId []byte, clientArchType uint16,
-	associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileUrl []byte, err error) *Packet {
+	associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileUrl []byte, dnsServers []net.IP, err error) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
 	for _, association := range(associations) {
@@ -89,12 +89,13 @@ func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId []byte, cli
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
 	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
+	ret_options.AddOption(MakeDNSServersOption(dnsServers))
 
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
 func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, clientId []byte, clientArchType uint16,
-	bootFileUrl []byte) *Packet {
+	bootFileUrl []byte, dnsServers []net.IP) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
 	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
@@ -102,6 +103,7 @@ func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, cl
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
 	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
+	ret_options.AddOption(MakeDNSServersOption(dnsServers))
 
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }

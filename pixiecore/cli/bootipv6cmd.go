@@ -6,8 +6,10 @@ import (
 	"go.universe.tf/netboot/pixiecorev6"
 	"go.universe.tf/netboot/dhcp6"
 	"net"
+	"strings"
 )
 
+// pixiecore bootipv6 --listen-addr=2001:db8:f00f:cafe::4/64 --httpboot-url=http://[2001:db8:f00f:cafe::4]/bootx64.efi --ipxe-url=http://[2001:db8:f00f:cafe::4]/script.ipxe
 var bootIPv6Cmd = &cobra.Command{
 	Use:   "bootipv6",
 	Short: "Boot a kernel and optional init ramdisks over IPv6",
@@ -50,7 +52,18 @@ var bootIPv6Cmd = &cobra.Command{
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		s.BootConfig = dhcp6.MakeStaticBootConfiguration(httpBootUrl, ipxeUrl, preference, cmd.Flags().Changed("preference"))
+		dnsServers, err := cmd.Flags().GetString("dns-servers")
+		if err != nil {
+			fatalf("Error reading flag: %s", err)
+		}
+		dnsServerAddresses := make([]net.IP, 0)
+		if cmd.Flags().Changed("dns-servers") {
+			for _, dnsServerAddress := range strings.Split(dnsServers, ",") {
+				dnsServerAddresses = append(dnsServerAddresses, net.ParseIP(dnsServerAddress))
+			}
+		}
+		s.BootConfig = dhcp6.MakeStaticBootConfiguration(httpBootUrl, ipxeUrl, preference,
+			cmd.Flags().Changed("preference"), dnsServerAddresses)
 
 		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")
 		if err != nil {
@@ -80,6 +93,7 @@ func serverv6ConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("address-pool-start", "", "2001:db8:f00f:cafe:ffff::100", "Starting ip of the address pool, e.g. 2001:db8:f00f:cafe:ffff::100")
 	cmd.Flags().Uint64("address-pool-size", 50, "Address pool size")
 	cmd.Flags().Uint32("address-pool-lifetime", 1850, "Address pool ip valid lifetime in seconds")
+	cmd.Flags().StringP("dns-servers", "", "", "Comma separated list of one or more dns server addresses")
 }
 
 func init() {

@@ -7,28 +7,31 @@ import (
 	"fmt"
 	"net/url"
 	"bytes"
+	"net"
 )
 
 type BootConfiguration interface {
 	GetBootUrl(id []byte, clientArchType uint16) ([]byte, error)
 	GetPreference() []byte
-	GetRecursiveDns() []byte
+	GetRecursiveDns() []net.IP
 }
 
 type StaticBootConfiguration struct {
-	HttpBootUrl 	[]byte
-	IPxeBootUrl		[]byte
-	RecursiveDns	[]byte
-	Preference		[]byte
-	UsePreference	bool
+	HttpBootUrl 		[]byte
+	IPxeBootUrl			[]byte
+	RecursiveDns		[]net.IP
+	Preference			[]byte
+	UsePreference		bool
 }
 
-func MakeStaticBootConfiguration(httpBootUrl, ipxeBootUrl string, preference uint8, usePreference bool) *StaticBootConfiguration {
+func MakeStaticBootConfiguration(httpBootUrl, ipxeBootUrl string, preference uint8, usePreference bool,
+		dnsServerAddresses []net.IP) *StaticBootConfiguration {
 	ret := &StaticBootConfiguration{HttpBootUrl: []byte(httpBootUrl), IPxeBootUrl: []byte(ipxeBootUrl), UsePreference: usePreference}
 	if usePreference {
 		ret.Preference = make([]byte, 1)
 		ret.Preference[0] = byte(preference)
 	}
+	ret.RecursiveDns = dnsServerAddresses
 	return ret
 }
 
@@ -43,19 +46,20 @@ func (bc *StaticBootConfiguration) GetPreference() []byte {
 	return bc.Preference
 }
 
-func (bc *StaticBootConfiguration) GetRecursiveDns() []byte {
+func (bc *StaticBootConfiguration) GetRecursiveDns() []net.IP {
 	return bc.RecursiveDns
 }
 
 type ApiBootConfiguration struct {
-	client    		*http.Client
-	urlPrefix 		string
-	RecursiveDns	[]byte
-	Preference		[]byte
-	UsePreference	bool
+	client    			*http.Client
+	urlPrefix 			string
+	RecursiveDns		[]net.IP
+	Preference			[]byte
+	UsePreference		bool
 }
 
-func MakeApiBootConfiguration(url string, timeout time.Duration, preference uint8, usePreference bool) *ApiBootConfiguration {
+func MakeApiBootConfiguration(url string, timeout time.Duration, preference uint8, usePreference bool,
+		dnsServerAddresses []net.IP) *ApiBootConfiguration {
 	if !strings.HasSuffix(url, "/") {
 		url += "/"
 	}
@@ -68,6 +72,7 @@ func MakeApiBootConfiguration(url string, timeout time.Duration, preference uint
 		ret.Preference = make([]byte, 1)
 		ret.Preference[0] = byte(preference)
 	}
+	ret.RecursiveDns = dnsServerAddresses
 
 	return ret
 }
@@ -110,6 +115,6 @@ func (bc *ApiBootConfiguration) GetPreference() []byte {
 	return bc.Preference
 }
 
-func (bc *ApiBootConfiguration) GetRecursiveDns() []byte {
+func (bc *ApiBootConfiguration) GetRecursiveDns() []net.IP {
 	return bc.RecursiveDns
 }

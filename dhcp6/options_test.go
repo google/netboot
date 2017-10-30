@@ -102,3 +102,22 @@ func TestUnmarshalFailsIfOROLengthIsOdd(t *testing.T) {
 		t.Fatalf("Parsing options should fail: option request for options has odd length.")
 	}
 }
+
+func TestMakeDNSServersOption(t *testing.T) {
+	expectedAddress1 := net.ParseIP("2001:db8:f00f:cafe::99")
+	expectedAddress2 := net.ParseIP("2001:db8:f00f:cafe::9A")
+	dnsServersOption := MakeDNSServersOption([]net.IP{expectedAddress1, expectedAddress2})
+
+	if dnsServersOption.Id != OptRecursiveDns {
+		t.Fatalf("Expected option id %d, got %d", OptRecursiveDns, dnsServersOption.Id)
+	}
+	if dnsServersOption.Length != 32 {
+		t.Fatalf("Expected length 32 bytes, got %d", dnsServersOption.Length)
+	}
+	if string(dnsServersOption.Value[0:16]) != string(expectedAddress1) {
+		t.Fatalf("Expected dns server address %v, got %v", expectedAddress1, net.IP(dnsServersOption.Value[0:16]))
+	}
+	if string(dnsServersOption.Value[16:]) != string(expectedAddress2) {
+		t.Fatalf("Expected dns server address %v, got %v", expectedAddress2, net.IP(dnsServersOption.Value[16:]))
+	}
+}
