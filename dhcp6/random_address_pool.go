@@ -96,7 +96,7 @@ func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]b
 
 		for {
 			// we assume that ip addresses adhere to high 64 bits for net and subnet ids, low 64 bits are for host id rule
-			hostOffset := rng.Uint64() % p.poolSize
+			hostOffset := randomUint64(rng) % p.poolSize
 			newIp := big.NewInt(0).Add(p.poolStartAddress, big.NewInt(0).SetUint64(hostOffset))
 			_, exists := p.usedIps[newIp.Uint64()];
 			if !exists {
@@ -154,4 +154,8 @@ func (p *RandomAddressPool) calculateIaIdHash(clientId, interfaceId []byte) uint
 	h.Write(clientId)
 	h.Write(interfaceId)
 	return h.Sum64()
+}
+
+func randomUint64(rng *rand.Rand) uint64 {
+	return uint64(rng.Uint32())<<32 + uint64(rand.Uint32())
 }
