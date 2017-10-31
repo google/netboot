@@ -78,7 +78,7 @@ var bootIPv6Cmd = &cobra.Command{
 			fatalf("Error reading flag: %s", err)
 		}
 		s.AddressPool = dhcp6.NewRandomAddressPool(net.ParseIP(addressPoolStart), addressPoolSize, addressPoolValidLifetime)
-		s.PacketBuilder = dhcp6.MakePacketBuilder(s.Duid, addressPoolValidLifetime - addressPoolValidLifetime*3/100, addressPoolValidLifetime)
+		s.PacketBuilder = dhcp6.MakePacketBuilder(addressPoolValidLifetime - addressPoolValidLifetime*3/100, addressPoolValidLifetime)
 
 		fmt.Println(s.Serve())
 	},

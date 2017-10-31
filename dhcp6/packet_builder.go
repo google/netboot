@@ -7,16 +7,15 @@ import (
 )
 
 type PacketBuilder struct {
-	ServerDuid        []byte
 	PreferredLifetime uint32
 	ValidLifetime     uint32
 }
 
-func MakePacketBuilder(serverDuid []byte, preferredLifetime, validLifetime uint32) *PacketBuilder {
-	return &PacketBuilder{ServerDuid: serverDuid, PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime}
+func MakePacketBuilder(preferredLifetime, validLifetime uint32) *PacketBuilder {
+	return &PacketBuilder{PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime}
 }
 
-func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguration, addresses AddressPool) (*Packet, error) {
+func (b *PacketBuilder) BuildResponse(in *Packet, serverDuid []byte, configuration BootConfiguration, addresses AddressPool) (*Packet, error) {
 	switch in.Type {
 	case MsgSolicit:
 		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
@@ -25,9 +24,9 @@ func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguratio
 		}
 		associations, err := addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
 		if err != nil {
-			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, in.Options.ClientId(), err), err
+			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, serverDuid, in.Options.ClientId(), err), err
 		}
-		return b.MakeMsgAdvertise(in.TransactionID, in.Options.ClientId(),
+		return b.MakeMsgAdvertise(in.TransactionID, serverDuid, in.Options.ClientId(),
 			in.Options.ClientArchType(), associations, bootFileUrl, configuration.GetPreference(), configuration.GetRecursiveDns()), nil
 	case MsgRequest:
 		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
@@ -35,7 +34,7 @@ func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguratio
 			return nil, err
 		}
 		associations, err := addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
-		return b.MakeMsgReply(in.TransactionID, in.Options.ClientId(),
+		return b.MakeMsgReply(in.TransactionID, serverDuid, in.Options.ClientId(),
 				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIds()), bootFileUrl,
 				configuration.GetRecursiveDns(), err), err
 	case MsgInformationRequest:
@@ -43,17 +42,17 @@ func (b *PacketBuilder) BuildResponse(in *Packet, configuration BootConfiguratio
 		if err != nil {
 			return nil, err
 		}
-		return b.MakeMsgInformationRequestReply(in.TransactionID, in.Options.ClientId(),
+		return b.MakeMsgInformationRequestReply(in.TransactionID, serverDuid, in.Options.ClientId(),
 			in.Options.ClientArchType(), bootFileUrl, configuration.GetRecursiveDns()), nil
 	case MsgRelease:
 		addresses.ReleaseAddresses(in.Options.ClientId(), in.Options.IaNaIds())
-		return b.MakeMsgReleaseReply(in.TransactionID, in.Options.ClientId()), nil
+		return b.MakeMsgReleaseReply(in.TransactionID, serverDuid, in.Options.ClientId()), nil
 	default:
 		return nil, nil
 	}
 }
 
-func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId []byte, clientArchType uint16,
+func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, serverDuid, clientId []byte, clientArchType uint16,
 	associations []*IdentityAssociation, bootFileUrl, preference []byte, dnsServers []net.IP) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
@@ -61,7 +60,7 @@ func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId []byte,
 		ret_options.AddOption(MakeIaNaOption(association.InterfaceId, b.calculateT1(), b.calculateT2(),
 			MakeIaAddrOption(association.IpAddress, b.PreferredLifetime, b.ValidLifetime)))
 	}
-	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
 	if 0x10 ==  clientArchType { // HTTPClient
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
@@ -72,7 +71,7 @@ func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, clientId []byte,
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
 }
 
-func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId []byte, clientArchType uint16,
+func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, serverDuid, clientId []byte, clientArchType uint16,
 	associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileUrl []byte, dnsServers []net.IP, err error) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
@@ -84,7 +83,7 @@ func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId []byte, cli
 		ret_options.AddOption(MakeIaNaOption(ia, b.calculateT1(), b.calculateT2(),
 			MakeStatusOption(2, err.Error())))
 	}
-	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
 	if 0x10 ==  clientArchType { // HTTPClient
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
@@ -94,11 +93,11 @@ func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, clientId []byte, cli
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
-func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, clientId []byte, clientArchType uint16,
+func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, serverDuid, clientId []byte, clientArchType uint16,
 	bootFileUrl []byte, dnsServers []net.IP) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
 	if 0x10 ==  clientArchType { // HTTPClient
 		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
@@ -108,11 +107,11 @@ func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, cl
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
-func (b *PacketBuilder) MakeMsgReleaseReply(transactionId [3]byte, clientId []byte) *Packet {
+func (b *PacketBuilder) MakeMsgReleaseReply(transactionId [3]byte, serverDuid, clientId []byte) *Packet {
 	ret_options := make(Options)
 
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
 	v := make([]byte, 19, 19)
 	copy(v[2:], []byte("Release received."))
 	ret_options.AddOption(MakeOption(OptStatusCode, v))
@@ -120,10 +119,10 @@ func (b *PacketBuilder) MakeMsgReleaseReply(transactionId [3]byte, clientId []by
 	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
 }
 
-func (b *PacketBuilder) MakeMsgAdvertiseWithNoAddrsAvailable(transactionId [3]byte, clientId []byte, err error) *Packet {
+func (b *PacketBuilder) MakeMsgAdvertiseWithNoAddrsAvailable(transactionId [3]byte, serverDuid, clientId []byte, err error) *Packet {
 	ret_options := make(Options)
 	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, b.ServerDuid))
+	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
 	ret_options.AddOption(MakeStatusOption(2, err.Error())) // NoAddrAvailable
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
 }

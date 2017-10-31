@@ -17,10 +17,10 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: expectedInterfaceId}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
-		expectedBootFileUrl, nil, []net.IP{expectedDnsServerIp})
+	msg := builder.MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, 0x11,
+		[]*IdentityAssociation{identityAssociation}, expectedBootFileUrl, nil, []net.IP{expectedDnsServerIp})
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -81,10 +81,10 @@ func TestMakeMsgAdvertiseShouldSkipDnsServersIfNoneConfigured(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: expectedInterfaceId}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
-		expectedBootFileUrl, nil, []net.IP{})
+	msg := builder.MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, 0x11,
+		[]*IdentityAssociation{identityAssociation}, expectedBootFileUrl, nil, []net.IP{})
 
 	_, exists := msg.Options[OptRecursiveDns]; if exists {
 		t.Fatalf("DNS servers option should not be set")
@@ -94,10 +94,10 @@ func TestMakeMsgAdvertiseShouldSkipDnsServersIfNoneConfigured(t *testing.T) {
 func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
 	identityAssociation := &IdentityAssociation{IpAddress: net.ParseIP("2001:db8:f00f:cafe::1"), InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder([]byte("serverid"), 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
 	expectedPreference := []byte{128}
-	msg := builder.MakeMsgAdvertise([3]byte{'t', 'i', 'd'}, []byte("clientid"), 0x11,
+	msg := builder.MakeMsgAdvertise([3]byte{'t', 'i', 'd'}, []byte("serverid"), []byte("clientid"), 0x11,
 		[]*IdentityAssociation{identityAssociation}, []byte("http://bootfileurl"), expectedPreference, []net.IP{})
 
 	preferenceOption := msg.Options[OptPreference]
@@ -117,10 +117,10 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedClientId, 0x10, []*IdentityAssociation{identityAssociation},
-		expectedBootFileUrl, nil, []net.IP{})
+	msg := builder.MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, 0x10,
+		[]*IdentityAssociation{identityAssociation}, expectedBootFileUrl, nil, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -141,9 +141,9 @@ func TestMakeNoAddrsAvailable(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedMessage := "Boom!"
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertiseWithNoAddrsAvailable(transactionId, expectedClientId, fmt.Errorf(expectedMessage))
+	msg := builder.MakeMsgAdvertiseWithNoAddrsAvailable(transactionId, expectedServerId, expectedClientId, fmt.Errorf(expectedMessage))
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -189,10 +189,10 @@ func TestMakeMsgReply(t *testing.T) {
 	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
-		make([][]byte, 0), expectedBootFileUrl, []net.IP{expectedDnsServerIp}, nil)
+	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x11,
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileUrl, []net.IP{expectedDnsServerIp}, nil)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -253,10 +253,10 @@ func TestMakeMsgReplyShouldSkipDnsServersIfNoneWereConfigured(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x11, []*IdentityAssociation{identityAssociation},
-		make([][]byte, 0), expectedBootFileUrl, []net.IP{}, nil)
+	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x11,
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileUrl, []net.IP{}, nil)
 
 	_, exists := msg.Options[OptRecursiveDns]; if exists {
 		t.Fatalf("Dns servers option shouldn't be present")
@@ -271,11 +271,10 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
-		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0),
-		expectedBootFileUrl, []net.IP{}, nil)
+	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x10,
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileUrl, []net.IP{}, nil)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
@@ -300,9 +299,9 @@ func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
 	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
 	expectedErrorMessage := "Boom!"
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedClientId, 0x10,
+	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x10,
 		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileUrl, []net.IP{},
 		fmt.Errorf(expectedErrorMessage))
 
@@ -352,9 +351,9 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	expectedBootFileUrl := []byte("http://bootfileurl")
 	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11,
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, 0x11,
 		expectedBootFileUrl, []net.IP{expectedDnsServerIp})
 
 	if msg.Type != MsgReply {
@@ -409,9 +408,9 @@ func TestMakeMsgInformationRequestReplyShouldSkipDnsServersIfNoneWereConfigured(
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x11,
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, 0x11,
 		expectedBootFileUrl, []net.IP{})
 
 	_, exists := msg.Options[OptRecursiveDns]; if exists {
@@ -425,9 +424,9 @@ func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 	transactionId := [3]byte{'1', '2', '3'}
 	expectedBootFileUrl := []byte("http://bootfileurl")
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedClientId, 0x10,
+	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, 0x10,
 		expectedBootFileUrl, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
@@ -449,9 +448,9 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 	expectedServerId := []byte("serverid")
 	transactionId := [3]byte{'1', '2', '3'}
 
-	builder := MakePacketBuilder(expectedServerId, 90, 100)
+	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReleaseReply(transactionId, expectedClientId)
+	msg := builder.MakeMsgReleaseReply(transactionId, expectedServerId, expectedClientId)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)

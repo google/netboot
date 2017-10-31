@@ -25,7 +25,7 @@ type Conn struct {
 }
 
 func NewConn(addr, port string) (*Conn, error) {
-	ifi, err := InterfaceIndexByAddress(addr)
+	ifi, err := InterfaceByAddress(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (c *Conn) Close() error {
 	return c.conn.Close()
 }
 
-func InterfaceIndexByAddress(ifAddr string) (*net.Interface, error) {
+func InterfaceByAddress(ifAddr string) (*net.Interface, error) {
 	allIfis, err := net.Interfaces()
 	if err != nil {
 		return nil, fmt.Errorf("Error getting network interface information: %s", err)
