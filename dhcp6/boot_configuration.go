@@ -11,75 +11,75 @@ import (
 )
 
 type BootConfiguration interface {
-	GetBootUrl(id []byte, clientArchType uint16) ([]byte, error)
+	GetBootURL(id []byte, clientArchType uint16) ([]byte, error)
 	GetPreference() []byte
-	GetRecursiveDns() []net.IP
+	GetRecursiveDNS() []net.IP
 }
 
 type StaticBootConfiguration struct {
-	HttpBootUrl 		[]byte
-	IPxeBootUrl			[]byte
-	RecursiveDns		[]net.IP
-	Preference			[]byte
-	UsePreference		bool
+	HTTPBootURL   []byte
+	IPxeBootURL   []byte
+	RecursiveDNS  []net.IP
+	Preference    []byte
+	UsePreference bool
 }
 
-func MakeStaticBootConfiguration(httpBootUrl, ipxeBootUrl string, preference uint8, usePreference bool,
+func MakeStaticBootConfiguration(httpBootURL, ipxeBootURL string, preference uint8, usePreference bool,
 		dnsServerAddresses []net.IP) *StaticBootConfiguration {
-	ret := &StaticBootConfiguration{HttpBootUrl: []byte(httpBootUrl), IPxeBootUrl: []byte(ipxeBootUrl), UsePreference: usePreference}
+	ret := &StaticBootConfiguration{HTTPBootURL: []byte(httpBootURL), IPxeBootURL: []byte(ipxeBootURL), UsePreference: usePreference}
 	if usePreference {
 		ret.Preference = make([]byte, 1)
 		ret.Preference[0] = byte(preference)
 	}
-	ret.RecursiveDns = dnsServerAddresses
+	ret.RecursiveDNS = dnsServerAddresses
 	return ret
 }
 
-func (bc *StaticBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) ([]byte, error) {
+func (bc *StaticBootConfiguration) GetBootURL(id []byte, clientArchType uint16) ([]byte, error) {
 	if 0x10 ==  clientArchType {
-		return bc.HttpBootUrl, nil
+		return bc.HTTPBootURL, nil
 	}
-	return bc.IPxeBootUrl, nil
+	return bc.IPxeBootURL, nil
 }
 
 func (bc *StaticBootConfiguration) GetPreference() []byte {
 	return bc.Preference
 }
 
-func (bc *StaticBootConfiguration) GetRecursiveDns() []net.IP {
-	return bc.RecursiveDns
+func (bc *StaticBootConfiguration) GetRecursiveDNS() []net.IP {
+	return bc.RecursiveDNS
 }
 
-type ApiBootConfiguration struct {
-	client    			*http.Client
-	urlPrefix 			string
-	RecursiveDns		[]net.IP
-	Preference			[]byte
-	UsePreference		bool
+type APIBootConfiguration struct {
+	Client        *http.Client
+	URLPrefix     string
+	RecursiveDNS  []net.IP
+	Preference    []byte
+	UsePreference bool
 }
 
 func MakeApiBootConfiguration(url string, timeout time.Duration, preference uint8, usePreference bool,
-		dnsServerAddresses []net.IP) *ApiBootConfiguration {
+		dnsServerAddresses []net.IP) *APIBootConfiguration {
 	if !strings.HasSuffix(url, "/") {
 		url += "/"
 	}
-	ret := &ApiBootConfiguration{
-		client:    &http.Client{Timeout: timeout},
-		urlPrefix: url + "v1",
+	ret := &APIBootConfiguration{
+		Client:        &http.Client{Timeout: timeout},
+		URLPrefix:     url + "v1",
 		UsePreference: usePreference,
 	}
 	if usePreference {
 		ret.Preference = make([]byte, 1)
 		ret.Preference[0] = byte(preference)
 	}
-	ret.RecursiveDns = dnsServerAddresses
+	ret.RecursiveDNS = dnsServerAddresses
 
 	return ret
 }
 
-func (bc *ApiBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) ([]byte, error) {
-	reqURL := fmt.Sprintf("%s/boot/%x/%d", bc.urlPrefix, id, clientArchType)
-	resp, err := bc.client.Get(reqURL)
+func (bc *APIBootConfiguration) GetBootURL(id []byte, clientArchType uint16) ([]byte, error) {
+	reqURL := fmt.Sprintf("%s/boot/%x/%d", bc.URLPrefix, id, clientArchType)
+	resp, err := bc.Client.Get(reqURL)
 	if err != nil {
 		return nil, err
 	}
@@ -96,13 +96,13 @@ func (bc *ApiBootConfiguration) GetBootUrl(id []byte, clientArchType uint16) ([]
 	return []byte(url), nil
 }
 
-func (bc *ApiBootConfiguration) makeURLAbsolute(urlStr string) (string, error) {
+func (bc *APIBootConfiguration) makeURLAbsolute(urlStr string) (string, error) {
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return "", fmt.Errorf("%q is not an URL", urlStr)
 	}
 	if !u.IsAbs() {
-		base, err := url.Parse(bc.urlPrefix)
+		base, err := url.Parse(bc.URLPrefix)
 		if err != nil {
 			return "", err
 		}
@@ -111,10 +111,10 @@ func (bc *ApiBootConfiguration) makeURLAbsolute(urlStr string) (string, error) {
 	return u.String(), nil
 }
 
-func (bc *ApiBootConfiguration) GetPreference() []byte {
+func (bc *APIBootConfiguration) GetPreference() []byte {
 	return bc.Preference
 }
 
-func (bc *ApiBootConfiguration) GetRecursiveDns() []net.IP {
-	return bc.RecursiveDns
+func (bc *APIBootConfiguration) GetRecursiveDNS() []net.IP {
+	return bc.RecursiveDNS
 }

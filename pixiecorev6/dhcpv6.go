@@ -34,13 +34,13 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
 			continue
 		}
 
-		marshalled_response, err := response.Marshal()
+		marshalledResponse, err := response.Marshal()
 		if err != nil {
 			s.log("dhcpv6", fmt.Sprintf("Error marshalling response: %s", response.Type, response.TransactionID, err))
 			continue
 		}
 
-		if err := conn.SendDHCP(src, marshalled_response); err != nil {
+		if err := conn.SendDHCP(src, marshalledResponse); err != nil {
 			s.log("dhcpv6", fmt.Sprintf("Error sending reply (%d) (%d): %s", response.Type, response.TransactionID, err))
 			continue
 		}

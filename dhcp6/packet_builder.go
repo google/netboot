@@ -15,116 +15,117 @@ func MakePacketBuilder(preferredLifetime, validLifetime uint32) *PacketBuilder {
 	return &PacketBuilder{PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime}
 }
 
-func (b *PacketBuilder) BuildResponse(in *Packet, serverDuid []byte, configuration BootConfiguration, addresses AddressPool) (*Packet, error) {
+func (b *PacketBuilder) BuildResponse(in *Packet, serverDUID []byte, configuration BootConfiguration, addresses AddressPool) (*Packet, error) {
 	switch in.Type {
 	case MsgSolicit:
-		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileURL, err := configuration.GetBootURL(b.ExtractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
-		associations, err := addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
+		associations, err := addresses.ReserveAddresses(in.Options.ClientID(), in.Options.IaNaIDs())
 		if err != nil {
-			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, serverDuid, in.Options.ClientId(), err), err
+			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, serverDUID, in.Options.ClientID(), err), err
 		}
-		return b.MakeMsgAdvertise(in.TransactionID, serverDuid, in.Options.ClientId(),
-			in.Options.ClientArchType(), associations, bootFileUrl, configuration.GetPreference(), configuration.GetRecursiveDns()), nil
+		return b.MakeMsgAdvertise(in.TransactionID, serverDUID, in.Options.ClientID(),
+			in.Options.ClientArchType(), associations, bootFileURL, configuration.GetPreference(), configuration.GetRecursiveDNS()), nil
 	case MsgRequest:
-		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileURL, err := configuration.GetBootURL(b.ExtractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
-		associations, err := addresses.ReserveAddresses(in.Options.ClientId(), in.Options.IaNaIds())
-		return b.MakeMsgReply(in.TransactionID, serverDuid, in.Options.ClientId(),
-				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIds()), bootFileUrl,
-				configuration.GetRecursiveDns(), err), err
+		associations, err := addresses.ReserveAddresses(in.Options.ClientID(), in.Options.IaNaIDs())
+		return b.MakeMsgReply(in.TransactionID, serverDUID, in.Options.ClientID(),
+				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIDs()), bootFileURL,
+				configuration.GetRecursiveDNS(), err), err
 	case MsgInformationRequest:
-		bootFileUrl, err := configuration.GetBootUrl(b.ExtractLLAddressOrId(in.Options.ClientId()), in.Options.ClientArchType())
+		bootFileURL, err := configuration.GetBootURL(b.ExtractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
-		return b.MakeMsgInformationRequestReply(in.TransactionID, serverDuid, in.Options.ClientId(),
-			in.Options.ClientArchType(), bootFileUrl, configuration.GetRecursiveDns()), nil
+		return b.MakeMsgInformationRequestReply(in.TransactionID, serverDUID, in.Options.ClientID(),
+			in.Options.ClientArchType(), bootFileURL, configuration.GetRecursiveDNS()), nil
 	case MsgRelease:
-		addresses.ReleaseAddresses(in.Options.ClientId(), in.Options.IaNaIds())
-		return b.MakeMsgReleaseReply(in.TransactionID, serverDuid, in.Options.ClientId()), nil
+		addresses.ReleaseAddresses(in.Options.ClientID(), in.Options.IaNaIDs())
+		return b.MakeMsgReleaseReply(in.TransactionID, serverDUID, in.Options.ClientID()), nil
 	default:
 		return nil, nil
 	}
 }
 
-func (b *PacketBuilder) MakeMsgAdvertise(transactionId [3]byte, serverDuid, clientId []byte, clientArchType uint16,
-	associations []*IdentityAssociation, bootFileUrl, preference []byte, dnsServers []net.IP) *Packet {
-	ret_options := make(Options)
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
+func (b *PacketBuilder) MakeMsgAdvertise(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
+	associations []*IdentityAssociation, bootFileURL, preference []byte, dnsServers []net.IP) *Packet {
+	retOptions := make(Options)
+	retOptions.AddOption(MakeOption(OptClientID, clientID))
 	for _, association := range(associations) {
-		ret_options.AddOption(MakeIaNaOption(association.InterfaceId, b.calculateT1(), b.calculateT2(),
-			MakeIaAddrOption(association.IpAddress, b.PreferredLifetime, b.ValidLifetime)))
+		retOptions.AddOption(MakeIaNaOption(association.InterfaceID, b.calculateT1(), b.calculateT2(),
+			MakeIaAddrOption(association.IPAddress, b.PreferredLifetime, b.ValidLifetime)))
 	}
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
+	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
 	if 0x10 ==  clientArchType { // HTTPClient
-		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		retOptions.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
-	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
-	if preference != nil {ret_options.AddOption(MakeOption(OptPreference, preference))}
-	if len(dnsServers) > 0 { ret_options.AddOption(MakeDNSServersOption(dnsServers)) }
+	retOptions.AddOption(MakeOption(OptBootfileURL, bootFileURL))
+	if preference != nil {
+		retOptions.AddOption(MakeOption(OptPreference, preference))}
+	if len(dnsServers) > 0 { retOptions.AddOption(MakeDNSServersOption(dnsServers)) }
 
-	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
+	return &Packet{Type: MsgAdvertise, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgReply(transactionId [3]byte, serverDuid, clientId []byte, clientArchType uint16,
-	associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileUrl []byte, dnsServers []net.IP, err error) *Packet {
-	ret_options := make(Options)
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
+func (b *PacketBuilder) MakeMsgReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
+	associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileURL []byte, dnsServers []net.IP, err error) *Packet {
+	retOptions := make(Options)
+	retOptions.AddOption(MakeOption(OptClientID, clientID))
 	for _, association := range(associations) {
-		ret_options.AddOption(MakeIaNaOption(association.InterfaceId, b.calculateT1(), b.calculateT2(),
-			MakeIaAddrOption(association.IpAddress, b.PreferredLifetime, b.ValidLifetime)))
+		retOptions.AddOption(MakeIaNaOption(association.InterfaceID, b.calculateT1(), b.calculateT2(),
+			MakeIaAddrOption(association.IPAddress, b.PreferredLifetime, b.ValidLifetime)))
 	}
 	for _, ia := range(iasWithoutAddresses) {
-		ret_options.AddOption(MakeIaNaOption(ia, b.calculateT1(), b.calculateT2(),
+		retOptions.AddOption(MakeIaNaOption(ia, b.calculateT1(), b.calculateT2(),
 			MakeStatusOption(2, err.Error())))
 	}
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
+	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
 	if 0x10 ==  clientArchType { // HTTPClient
-		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		retOptions.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
-	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
-	if len(dnsServers) > 0 { ret_options.AddOption(MakeDNSServersOption(dnsServers)) }
+	retOptions.AddOption(MakeOption(OptBootfileURL, bootFileURL))
+	if len(dnsServers) > 0 { retOptions.AddOption(MakeDNSServersOption(dnsServers)) }
 
-	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
+	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionId [3]byte, serverDuid, clientId []byte, clientArchType uint16,
-	bootFileUrl []byte, dnsServers []net.IP) *Packet {
-	ret_options := make(Options)
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
+func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
+	bootFileURL []byte, dnsServers []net.IP) *Packet {
+	retOptions := make(Options)
+	retOptions.AddOption(MakeOption(OptClientID, clientID))
+	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
 	if 0x10 ==  clientArchType { // HTTPClient
-		ret_options.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		retOptions.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
-	ret_options.AddOption(MakeOption(OptBootfileUrl, bootFileUrl))
-	if len(dnsServers) > 0 { ret_options.AddOption(MakeDNSServersOption(dnsServers)) }
+	retOptions.AddOption(MakeOption(OptBootfileURL, bootFileURL))
+	if len(dnsServers) > 0 { retOptions.AddOption(MakeDNSServersOption(dnsServers)) }
 
-	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
+	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgReleaseReply(transactionId [3]byte, serverDuid, clientId []byte) *Packet {
-	ret_options := make(Options)
+func (b *PacketBuilder) MakeMsgReleaseReply(transactionID [3]byte, serverDUID, clientID []byte) *Packet {
+	retOptions := make(Options)
 
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
+	retOptions.AddOption(MakeOption(OptClientID, clientID))
+	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
 	v := make([]byte, 19, 19)
 	copy(v[2:], []byte("Release received."))
-	ret_options.AddOption(MakeOption(OptStatusCode, v))
+	retOptions.AddOption(MakeOption(OptStatusCode, v))
 
-	return &Packet{Type: MsgReply, TransactionID: transactionId, Options: ret_options}
+	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgAdvertiseWithNoAddrsAvailable(transactionId [3]byte, serverDuid, clientId []byte, err error) *Packet {
-	ret_options := make(Options)
-	ret_options.AddOption(MakeOption(OptClientId, clientId))
-	ret_options.AddOption(MakeOption(OptServerId, serverDuid))
-	ret_options.AddOption(MakeStatusOption(2, err.Error())) // NoAddrAvailable
-	return &Packet{Type: MsgAdvertise, TransactionID: transactionId, Options: ret_options}
+func (b *PacketBuilder) MakeMsgAdvertiseWithNoAddrsAvailable(transactionID [3]byte, serverDUID, clientID []byte, err error) *Packet {
+	retOptions := make(Options)
+	retOptions.AddOption(MakeOption(OptClientID, clientID))
+	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
+	retOptions.AddOption(MakeStatusOption(2, err.Error())) // NoAddrAvailable
+	return &Packet{Type: MsgAdvertise, TransactionID: transactionID, Options: retOptions}
 }
 
 func (b *PacketBuilder) calculateT1() uint32 {
@@ -135,36 +136,36 @@ func (b *PacketBuilder) calculateT2() uint32 {
 	return (b.PreferredLifetime * 4)/5
 }
 
-func (b *PacketBuilder) ExtractLLAddressOrId(optClientId []byte) []byte {
-	idType := binary.BigEndian.Uint16(optClientId[0:2])
+func (b *PacketBuilder) ExtractLLAddressOrID(optClientID []byte) []byte {
+	idType := binary.BigEndian.Uint16(optClientID[0:2])
 	switch idType {
 	case 1:
-		return optClientId[8:]
+		return optClientID[8:]
 	case 3:
-		return optClientId[4:]
+		return optClientID[4:]
 	default:
-		return optClientId[2:]
+		return optClientID[2:]
 	}
 }
 
-func iasWithoutAddesses(availableAssociations []*IdentityAssociation, allIas [][]byte) [][]byte {
+func iasWithoutAddesses(availableAssociations []*IdentityAssociation, allIAs [][]byte) [][]byte {
 	ret := make([][]byte, 0)
 	iasWithAddresses := make(map[uint64]bool)
 
 	for _, association := range(availableAssociations) {
-		iasWithAddresses[calculateIaIdHash(association.InterfaceId)] = true
+		iasWithAddresses[calculateIAIDHash(association.InterfaceID)] = true
 	}
 
-	for _, ia := range(allIas) {
-		_, exists := iasWithAddresses[calculateIaIdHash(ia)]; if !exists {
+	for _, ia := range(allIAs) {
+		_, exists := iasWithAddresses[calculateIAIDHash(ia)]; if !exists {
 			ret = append(ret, ia)
 		}
 	}
 	return ret
 }
 
-func calculateIaIdHash(interfaceId []byte) uint64 {
+func calculateIAIDHash(interfaceID []byte) uint64 {
 	h := fnv.New64a()
-	h.Write(interfaceId)
+	h.Write(interfaceID)
 	return h.Sum64()
 }

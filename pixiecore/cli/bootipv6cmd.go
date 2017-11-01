@@ -18,11 +18,11 @@ var bootIPv6Cmd = &cobra.Command{
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		ipxeUrl, err := cmd.Flags().GetString("ipxe-url")
+		ipxeURL, err := cmd.Flags().GetString("ipxe-url")
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		httpBootUrl, err := cmd.Flags().GetString("httpboot-url")
+		httpBootURL, err := cmd.Flags().GetString("httpboot-url")
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
@@ -40,10 +40,10 @@ var bootIPv6Cmd = &cobra.Command{
 			fatalf("Please specify address to bind to")
 		} else {
 		}
-		if ipxeUrl == "" {
+		if ipxeURL == "" {
 			fatalf("Please specify ipxe config file url")
 		}
-		if httpBootUrl == "" {
+		if httpBootURL == "" {
 			fatalf("Please specify httpboot url")
 		}
 
@@ -62,7 +62,7 @@ var bootIPv6Cmd = &cobra.Command{
 				dnsServerAddresses = append(dnsServerAddresses, net.ParseIP(dnsServerAddress))
 			}
 		}
-		s.BootConfig = dhcp6.MakeStaticBootConfiguration(httpBootUrl, ipxeUrl, preference,
+		s.BootConfig = dhcp6.MakeStaticBootConfiguration(httpBootURL, ipxeURL, preference,
 			cmd.Flags().Changed("preference"), dnsServerAddresses)
 
 		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")

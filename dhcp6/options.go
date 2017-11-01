@@ -8,55 +8,55 @@ import (
 )
 
 const (
-	OptClientId       uint16 = 1  // IPMask
-	OptServerId                = 2  // int32
-	OptIaNa                    = 3  // IPs
-	OptIaTa                    = 4  // IPs
-	OptIaAddr                  = 5  // string
-	OptOro                     = 6  // uint16
-	OptPreference              = 7  // string
-	OptElapsedTime             = 8  // IP
-	OptRelayMessage            = 9  // IP
-	OptAuth                    = 11 // []byte
-	OptUnicast                 = 12 // IP
-	OptStatusCode              = 13 // uint32
-	OptRapidCommit             = 14 // byte
-	OptUserClass               = 15 // IP
-	OptVendorClass             = 16 // []byte
-	OptVendorOpts              = 17 // string
-	OptInterfaceId             = 18 // uint16
-	OptReconfMsg               = 19 // uint32
-	OptReconfAccept            = 20 // uint32
-	OptRecursiveDns			   = 23 // []byte
-	OptBootfileUrl             = 59
-	OptBootfileParam           = 60 //[][]byte
-	OptClientArchType          = 61 //[][]byte, sent by the client
+	OptClientID     uint16 = 1 // IPMask
+	OptServerID            = 2 // int32
+	OptIaNa                = 3 // IPs
+	OptIaTa                = 4 // IPs
+	OptIaAddr              = 5 // string
+	OptOro            = 6      // uint16
+	OptPreference     = 7      // string
+	OptElapsedTime    = 8      // IP
+	OptRelayMessage   = 9      // IP
+	OptAuth           = 11     // []byte
+	OptUnicast        = 12     // IP
+	OptStatusCode     = 13     // uint32
+	OptRapidCommit    = 14     // byte
+	OptUserClass      = 15     // IP
+	OptVendorClass    = 16     // []byte
+	OptVendorOpts     = 17     // string
+	OptInterfaceID    = 18     // uint16
+	OptReconfMsg      = 19     // uint32
+	OptReconfAccept   = 20     // uint32
+	OptRecursiveDNS   = 23     // []byte
+	OptBootfileURL    = 59
+	OptBootfileParam  = 60 //[][]byte
+	OptClientArchType = 61 //[][]byte, sent by the Client
 	// 24? Domain search list
 )
 
 type Option struct {
-	Id uint16
+	ID     uint16
 	Length uint16
-	Value []byte
+	Value  []byte
 }
 
 func MakeOption(id uint16, value []byte) *Option {
-	return &Option{ Id: id, Length: uint16(len(value)), Value: value}
+	return &Option{ ID: id, Length: uint16(len(value)), Value: value}
 }
 
 type Options map[uint16][]*Option
 
 func MakeOptions(bs []byte) (Options, error) {
-	to_ret := make(Options)
+	ret := make(Options)
 	for len(bs) > 0 {
 		o, err := UnmarshalOption(bs)
 		if err != nil {
 			return nil, err
 		}
-		to_ret[o.Id] = append(to_ret[o.Id], &Option{ Id: o.Id, Length: o.Length, Value: bs[4 : 4+o.Length]})
+		ret[o.ID] = append(ret[o.ID], &Option{ ID: o.ID, Length: o.Length, Value: bs[4 : 4+o.Length]})
 		bs = bs[4+o.Length:]
 	}
-	return to_ret, nil
+	return ret, nil
 }
 
 func UnmarshalOption(bs []byte) (*Option, error) {
@@ -76,18 +76,18 @@ func UnmarshalOption(bs []byte) (*Option, error) {
 			return nil, fmt.Errorf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
 		}
 	}
-	return &Option{ Id: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]}, nil
+	return &Option{ ID: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]}, nil
 }
 
 func (o Options) HumanReadable() []string {
 	to_ret := make([]string, 0, len(o))
 	for _, multipleOptions := range(o) {
 		for _, option := range(multipleOptions) {
-			switch option.Id {
+			switch option.ID {
 			case 3:
 				to_ret = append(to_ret, o.HumanReadableIaNa(*option)...)
 			default:
-				to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", option.Id, option.Length, option.Value, option.Value))
+				to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", option.ID, option.Length, option.Value, option.Value))
 			}
 		}
 	}
@@ -127,10 +127,10 @@ func (o Options) HumanReadableIaNa(opt Option) []string {
 }
 
 func (o Options) AddOption(option *Option) {
-	_, present := o[option.Id]; if !present {
-		o[option.Id] = make([]*Option, 0)
+	_, present := o[option.ID]; if !present {
+		o[option.ID] = make([]*Option, 0)
 	}
-	o[option.Id] = append(o[option.Id], option)
+	o[option.ID] = append(o[option.ID], option)
 }
 
 func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaOption *Option) *Option {
@@ -163,7 +163,7 @@ func MakeDNSServersOption(addresses []net.IP) *Option {
 	for i, dnsAddress := range addresses {
 		copy(value[i*16:], dnsAddress)
 	}
-	return MakeOption(OptRecursiveDns, value)
+	return MakeOption(OptRecursiveDNS, value)
 }
 
 func (o Options) Marshal() ([]byte, error) {
@@ -185,7 +185,7 @@ func (o Options) Marshal() ([]byte, error) {
 func (o *Option) Marshal() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte, 0, o.Length + 2))
 
-	err := binary.Write(buffer, binary.BigEndian, o.Id)
+	err := binary.Write(buffer, binary.BigEndian, o.ID)
 	if err != nil {
 		return nil, fmt.Errorf("Error serializing option id: %s", err)
 	}
@@ -201,32 +201,32 @@ func (o *Option) Marshal() ([]byte, error) {
 }
 
 func (o Options) UnmarshalOptionRequestOption() map[uint16]bool {
-	to_ret := make(map[uint16]bool)
+	ret := make(map[uint16]bool)
 
 	_, present := o[OptOro]; if !present {
-		return to_ret
+		return ret
 	}
 
-	oro_content := o[OptOro][0].Value
+	value := o[OptOro][0].Value
 	for i := 0; i < int(o[OptOro][0].Length)/2; i++ {
-		to_ret[uint16(binary.BigEndian.Uint16(oro_content[i*2:(i+1)*2]))] = true
+		ret[uint16(binary.BigEndian.Uint16(value[i*2:(i+1)*2]))] = true
 	}
-	return to_ret
+	return ret
 }
 
-func (o Options) HasBootFileUrlOption() bool {
-	requested_options := o.UnmarshalOptionRequestOption()
-	_, present := requested_options[OptBootfileUrl]
+func (o Options) HasBootFileURLOption() bool {
+	requestedOptions := o.UnmarshalOptionRequestOption()
+	_, present := requestedOptions[OptBootfileURL]
 	return present
 }
 
-func (o Options) HasClientId() bool {
-	_, present := o[OptClientId]
+func (o Options) HasClientID() bool {
+	_, present := o[OptClientID]
 	return present
 }
 
-func (o Options) HasServerId() bool {
-	_, present := o[OptServerId]
+func (o Options) HasServerID() bool {
+	_, present := o[OptServerID]
 	return present
 }
 
@@ -245,23 +245,23 @@ func (o Options) HasClientArchType() bool {
 	return present
 }
 
-func (o Options) ClientId() []byte {
-	opt, exists := o[OptClientId]
+func (o Options) ClientID() []byte {
+	opt, exists := o[OptClientID]
 	if exists {
 		return opt[0].Value
 	}
 	return nil
 }
 
-func (o Options) ServerId() []byte {
-	opt, exists := o[OptServerId]
+func (o Options) ServerID() []byte {
+	opt, exists := o[OptServerID]
 	if exists {
 		return opt[0].Value
 	}
 	return nil
 }
 
-func (o Options) IaNaIds() [][]byte {
+func (o Options) IaNaIDs() [][]byte {
 	options, exists := o[OptIaNa]
 	ret := make([][]byte, 0)
 	if exists {
@@ -281,8 +281,8 @@ func (o Options) ClientArchType() uint16 {
 	return 0
 }
 
-func (o Options) BootfileUrl() []byte {
-	opt, exists := o[OptBootfileUrl]
+func (o Options) BootFileURL() []byte {
+	opt, exists := o[OptBootfileURL]
 	if exists {
 		return opt[0].Value
 	}

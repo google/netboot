@@ -40,15 +40,15 @@ func MakePacket(bs []byte, packetLength int) (*Packet, error) {
 }
 
 func (p *Packet) Marshal() ([]byte, error) {
-	marshalled_options, err := p.Options.Marshal()
+	marshalledOptions, err := p.Options.Marshal()
 	if err != nil {
 		return nil, fmt.Errorf("packet has malformed options section: %s", err)
 	}
 
-	ret := make([]byte, len(marshalled_options) + 4, len(marshalled_options) + 4)
+	ret := make([]byte, len(marshalledOptions) + 4, len(marshalledOptions) + 4)
 	ret[0] = byte(p.Type)
 	copy(ret[1:], p.TransactionID[:])
-	copy(ret[4:], marshalled_options)
+	copy(ret[4:], marshalledOptions)
 
 	return ret, nil
 }
@@ -70,13 +70,13 @@ func (p *Packet) ShouldDiscard(serverDuid []byte) error {
 
 func ShouldDiscardSolicit(p *Packet) error {
 	options := p.Options
-	if !options.HasBootFileUrlOption() {
+	if !options.HasBootFileURLOption() {
 		return fmt.Errorf("'Solicit' packet doesn't have file url option")
 	}
-	if !options.HasClientId() {
-		return fmt.Errorf("'Solicit' packet has no client id option")
+	if !options.HasClientID() {
+		return fmt.Errorf("'Solicit' packet has no Client id option")
 	}
-	if options.HasServerId() {
+	if options.HasServerID() {
 		return fmt.Errorf("'Solicit' packet has server id option")
 	}
 	return nil
@@ -84,31 +84,31 @@ func ShouldDiscardSolicit(p *Packet) error {
 
 func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
 	options := p.Options
-	if !options.HasBootFileUrlOption() {
+	if !options.HasBootFileURLOption() {
 		return fmt.Errorf("'Request' packet doesn't have file url option")
 	}
-	if !options.HasClientId() {
-		return fmt.Errorf("'Request' packet has no client id option")
+	if !options.HasClientID() {
+		return fmt.Errorf("'Request' packet has no Client id option")
 	}
-	if !options.HasServerId() {
+	if !options.HasServerID() {
 		return fmt.Errorf("'Request' packet has no server id option")
 	}
-	if bytes.Compare(options.ServerId(), serverDuid) != 0 {
-		return fmt.Errorf("'Request' packet's server id option (%d) is different from ours (%d)", options.ServerId(), serverDuid)
+	if bytes.Compare(options.ServerID(), serverDuid) != 0 {
+		return fmt.Errorf("'Request' packet's server id option (%d) is different from ours (%d)", options.ServerID(), serverDuid)
 	}
 	return nil
 }
 
 func ShouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
 	options := p.Options
-	if !options.HasBootFileUrlOption() {
+	if !options.HasBootFileURLOption() {
 		return fmt.Errorf("'Information-request' packet doesn't have boot file url option")
 	}
 	if options.HasIaNa() || options.HasIaTa() {
 		return fmt.Errorf("'Information-request' packet has an IA option present")
 	}
-	if options.HasServerId() && (bytes.Compare(options.ServerId(), serverDuid) != 0) {
-		return fmt.Errorf("'Information-request' packet's server id option (%d) is different from ours (%d)", options.ServerId(), serverDuid)
+	if options.HasServerID() && (bytes.Compare(options.ServerID(), serverDuid) != 0) {
+		return fmt.Errorf("'Information-request' packet's server id option (%d) is different from ours (%d)", options.ServerID(), serverDuid)
 	}
 	return nil
 }

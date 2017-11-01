@@ -26,9 +26,9 @@ func (f *Fifo) Push(v interface{}) {
 }
 
 func (f *Fifo) Shift() interface{} {
-	var to_ret interface{}
-	to_ret, f.q = f.q[0], f.q[1:]
-	return to_ret
+	var ret interface{}
+	ret, f.q = f.q[0], f.q[1:]
+	return ret
 }
 
 func (f *Fifo) Size() int {
@@ -54,37 +54,37 @@ type RandomAddressPool struct {
 }
 
 func NewRandomAddressPool(poolStartAddress net.IP, poolSize uint64, validLifetime uint32) *RandomAddressPool {
-	to_ret := &RandomAddressPool{}
-	to_ret.validLifetime = validLifetime
-	to_ret.poolStartAddress = big.NewInt(0)
-	to_ret.poolStartAddress.SetBytes(poolStartAddress)
-	to_ret.poolSize = poolSize
-	to_ret.identityAssociations = make(map[uint64]*IdentityAssociation)
-	to_ret.usedIps = make(map[uint64]struct{})
-	to_ret.identityAssociationExpirations = newFifo()
-	to_ret.timeNow = func() time.Time { return time.Now() }
+	ret := &RandomAddressPool{}
+	ret.validLifetime = validLifetime
+	ret.poolStartAddress = big.NewInt(0)
+	ret.poolStartAddress.SetBytes(poolStartAddress)
+	ret.poolSize = poolSize
+	ret.identityAssociations = make(map[uint64]*IdentityAssociation)
+	ret.usedIps = make(map[uint64]struct{})
+	ret.identityAssociationExpirations = newFifo()
+	ret.timeNow = func() time.Time { return time.Now() }
 
 	ticker := time.NewTicker(time.Second * 10).C
 	go func() {
 		for {
 			<- ticker
-			to_ret.ExpireIdentityAssociations()
+			ret.ExpireIdentityAssociations()
 		}
 	}()
 
-	return to_ret
+	return ret
 }
 
-func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]byte) ([]*IdentityAssociation, error) {
+func (p *RandomAddressPool) ReserveAddresses(clientID []byte, interfaceIDs [][]byte) ([]*IdentityAssociation, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	ret := make([]*IdentityAssociation, 0, len(interfaceIds))
+	ret := make([]*IdentityAssociation, 0, len(interfaceIDs))
 	rng := rand.New(rand.NewSource(p.timeNow().UnixNano()))
 
-	for _, interfaceId := range (interfaceIds) {
-		clientIdHash := p.calculateIaIdHash(clientId, interfaceId)
-		association, exists := p.identityAssociations[clientIdHash];
+	for _, interfaceID := range (interfaceIDs) {
+		clientIDHash := p.calculateIAIDHash(clientID, interfaceID)
+		association, exists := p.identityAssociations[clientIDHash];
 
 		if exists {
 			ret = append(ret, association)
@@ -101,11 +101,11 @@ func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]b
 			_, exists := p.usedIps[newIp.Uint64()];
 			if !exists {
 				timeNow := p.timeNow()
-				association := &IdentityAssociation{ClientId: clientId,
-					InterfaceId: interfaceId,
-					IpAddress: newIp.Bytes(),
+				association := &IdentityAssociation{ClientID: clientID,
+					InterfaceID: interfaceID,
+					IPAddress: newIp.Bytes(),
 					CreatedAt: timeNow}
-				p.identityAssociations[clientIdHash] = association
+				p.identityAssociations[clientIDHash] = association
 				p.usedIps[newIp.Uint64()] = struct{}{}
 				p.identityAssociationExpirations.Push(&AssociationExpiration{expiresAt: p.calculateAssociationExpiration(timeNow), ia: association})
 				ret = append(ret, association)
@@ -117,17 +117,17 @@ func (p *RandomAddressPool) ReserveAddresses(clientId []byte, interfaceIds [][]b
 	return ret, nil
 }
 
-func  (p *RandomAddressPool) ReleaseAddresses(clientId []byte, interfaceIds [][]byte) {
+func  (p *RandomAddressPool) ReleaseAddresses(clientID []byte, interfaceIDs [][]byte) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	for _, interfaceId := range(interfaceIds) {
-		association, exists := p.identityAssociations[p.calculateIaIdHash(clientId, interfaceId)]
+	for _, interfaceId := range(interfaceIDs) {
+		association, exists := p.identityAssociations[p.calculateIAIDHash(clientID, interfaceId)]
 		if !exists {
 			continue
 		}
-		delete(p.usedIps, big.NewInt(0).SetBytes(association.IpAddress).Uint64())
-		delete(p.identityAssociations, p.calculateIaIdHash(clientId, interfaceId))
+		delete(p.usedIps, big.NewInt(0).SetBytes(association.IPAddress).Uint64())
+		delete(p.identityAssociations, p.calculateIAIDHash(clientID, interfaceId))
 	}
 }
 
@@ -140,8 +140,8 @@ func (p *RandomAddressPool) ExpireIdentityAssociations() {
 		expiration := p.identityAssociationExpirations.Peek().(*AssociationExpiration)
 		if p.timeNow().Before(expiration.expiresAt) { break }
 		p.identityAssociationExpirations.Shift()
-		delete(p.identityAssociations, p.calculateIaIdHash(expiration.ia.ClientId, expiration.ia.InterfaceId))
-		delete(p.usedIps, big.NewInt(0).SetBytes(expiration.ia.IpAddress).Uint64())
+		delete(p.identityAssociations, p.calculateIAIDHash(expiration.ia.ClientID, expiration.ia.InterfaceID))
+		delete(p.usedIps, big.NewInt(0).SetBytes(expiration.ia.IPAddress).Uint64())
 	}
 }
 
@@ -149,10 +149,10 @@ func (p *RandomAddressPool) calculateAssociationExpiration(now time.Time) time.T
 	return now.Add(time.Duration(p.validLifetime)*time.Second)
 }
 
-func (p *RandomAddressPool) calculateIaIdHash(clientId, interfaceId []byte) uint64 {
+func (p *RandomAddressPool) calculateIAIDHash(clientID, interfaceID []byte) uint64 {
 	h := fnv.New64a()
-	h.Write(clientId)
-	h.Write(interfaceId)
+	h.Write(clientID)
+	h.Write(interfaceID)
 	return h.Sum64()
 }
 

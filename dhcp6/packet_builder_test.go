@@ -8,52 +8,52 @@ import (
 )
 
 func TestMakeMsgAdvertise(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	expectedInterfaceId := []byte("id-1")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: expectedInterfaceId}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	expectedInterfaceID := []byte("id-1")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileURL := []byte("http://bootfileurl")
+	expectedDnsServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
+	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: expectedInterfaceID}
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, 0x11,
-		[]*IdentityAssociation{identityAssociation}, expectedBootFileUrl, nil, []net.IP{expectedDnsServerIp})
+	msg := builder.MakeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x11,
+		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{expectedDnsServerIP})
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
 	}
-	if transactionId != msg.TransactionID {
-		t.Fatalf("Expected transaction Id %v, got %v", transactionId, msg.TransactionID)
+	if transactionID != msg.TransactionID {
+		t.Fatalf("Expected transaction ID %v, got %v", transactionID, msg.TransactionID)
 	}
 
-	clientIdOption := msg.Options.ClientId()
-	if clientIdOption == nil {
-		t.Fatalf("Client Id option should be present")
+	clientIDOption := msg.Options.ClientID()
+	if clientIDOption == nil {
+		t.Fatalf("Client ID option should be present")
 	}
-	if string(expectedClientId) != string(clientIdOption) {
-		t.Fatalf("Expected client id %v, got %v", expectedClientId, clientIdOption)
-	}
-
-	serverIdOption := msg.Options.ServerId()
-	if serverIdOption == nil {
-		t.Fatalf("Server Id option should be present")
-	}
-	if string(expectedServerId) != string(serverIdOption) {
-		t.Fatalf("Expected server id %v, got %v", expectedClientId, serverIdOption)
+	if string(expectedClientID) != string(clientIDOption) {
+		t.Fatalf("Expected Client id %v, got %v", expectedClientID, clientIDOption)
 	}
 
-	bootfileUrlOption := msg.Options[OptBootfileUrl][0]
-	if bootfileUrlOption == nil {
+	serverIDOption := msg.Options.ServerID()
+	if serverIDOption == nil {
+		t.Fatalf("Server ID option should be present")
+	}
+	if string(expectedServerID) != string(serverIDOption) {
+		t.Fatalf("Expected server id %v, got %v", expectedClientID, serverIDOption)
+	}
+
+	bootfileURLOption := msg.Options[OptBootfileURL][0]
+	if bootfileURLOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
-	if string(expectedBootFileUrl) != string(bootfileUrlOption.Value) {
-		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	if string(expectedBootFileURL) != string(bootfileURLOption.Value) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileURL, bootfileURLOption)
 	}
 
-	iaNaOption := msg.Options.IaNaIds()
+	iaNaOption := msg.Options.IaNaIDs()
 	if len(iaNaOption) == 0 {
 		t.Fatalf("interface non-temporary association option should be present")
 	}
@@ -63,36 +63,36 @@ func TestMakeMsgAdvertise(t *testing.T) {
 		t.Fatalf("Preference option shouldn't be set")
 	}
 
-	dnsServersOption := msg.Options[OptRecursiveDns]
+	dnsServersOption := msg.Options[OptRecursiveDNS]
 	if dnsServersOption == nil {
 		t.Fatalf("DNS servers option should be set")
 	}
-	if string(dnsServersOption[0].Value) != string(expectedDnsServerIp) {
-		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIp, net.IP(dnsServersOption[0].Value))
+	if string(dnsServersOption[0].Value) != string(expectedDnsServerIP) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIP, net.IP(dnsServersOption[0].Value))
 	}
 }
 
 func TestMakeMsgAdvertiseShouldSkipDnsServersIfNoneConfigured(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	expectedInterfaceId := []byte("id-1")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: expectedInterfaceId}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	expectedInterfaceID := []byte("id-1")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileURL := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: expectedInterfaceID}
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, 0x11,
-		[]*IdentityAssociation{identityAssociation}, expectedBootFileUrl, nil, []net.IP{})
+	msg := builder.MakeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x11,
+		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{})
 
-	_, exists := msg.Options[OptRecursiveDns]; if exists {
+	_, exists := msg.Options[OptRecursiveDNS]; if exists {
 		t.Fatalf("DNS servers option should not be set")
 	}
 }
 
 func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
-	identityAssociation := &IdentityAssociation{IpAddress: net.ParseIP("2001:db8:f00f:cafe::1"), InterfaceId: []byte("id-1")}
+	identityAssociation := &IdentityAssociation{IPAddress: net.ParseIP("2001:db8:f00f:cafe::1"), InterfaceID: []byte("id-1")}
 
 	builder := MakePacketBuilder(90, 100)
 
@@ -110,62 +110,62 @@ func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
 }
 
 func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileURL := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: []byte("id-1")}
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionId, expectedServerId, expectedClientId, 0x10,
-		[]*IdentityAssociation{identityAssociation}, expectedBootFileUrl, nil, []net.IP{})
+	msg := builder.MakeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x10,
+		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
 		t.Fatalf("Vendor class option should be present")
 	}
-	bootfileUrlOption := msg.Options.BootfileUrl()
-	if bootfileUrlOption == nil {
+	bootfileURLOption := msg.Options.BootFileURL()
+	if bootfileURLOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
-	if string(expectedBootFileUrl) != string(bootfileUrlOption) {
-		t.Fatalf("Expected bootfile URL %s, got %s", expectedBootFileUrl, bootfileUrlOption)
+	if string(expectedBootFileURL) != string(bootfileURLOption) {
+		t.Fatalf("Expected bootfile URL %s, got %s", expectedBootFileURL, bootfileURLOption)
 	}
 }
 
 func TestMakeNoAddrsAvailable(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
 	expectedMessage := "Boom!"
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertiseWithNoAddrsAvailable(transactionId, expectedServerId, expectedClientId, fmt.Errorf(expectedMessage))
+	msg := builder.MakeMsgAdvertiseWithNoAddrsAvailable(transactionID, expectedServerID, expectedClientID, fmt.Errorf(expectedMessage))
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
 	}
-	if transactionId != msg.TransactionID {
-		t.Fatalf("Expected transaction Id %v, got %v", transactionId, msg.TransactionID)
+	if transactionID != msg.TransactionID {
+		t.Fatalf("Expected transaction ID %v, got %v", transactionID, msg.TransactionID)
 	}
 
-	clientIdOption := msg.Options.ClientId()
-	if clientIdOption == nil {
-		t.Fatalf("Client Id option should be present")
+	clientIDOption := msg.Options.ClientID()
+	if clientIDOption == nil {
+		t.Fatalf("Client ID option should be present")
 	}
-	if string(expectedClientId) != string(clientIdOption) {
-		t.Fatalf("Expected client id %v, got %v", expectedClientId, clientIdOption)
+	if string(expectedClientID) != string(clientIDOption) {
+		t.Fatalf("Expected Client id %v, got %v", expectedClientID, clientIDOption)
 	}
 
-	serverIdOption := msg.Options.ServerId()
-	if serverIdOption == nil {
-		t.Fatalf("Server Id option should be present")
+	serverIDOption := msg.Options.ServerID()
+	if serverIDOption == nil {
+		t.Fatalf("Server ID option should be present")
 	}
-	if string(expectedServerId) != string(serverIdOption) {
-		t.Fatalf("Expected server id %v, got %v", expectedClientId, serverIdOption)
+	if string(expectedServerID) != string(serverIDOption) {
+		t.Fatalf("Expected server id %v, got %v", expectedClientID, serverIDOption)
 	}
 
 	_, exists := msg.Options[OptStatusCode]; if !exists {
@@ -181,54 +181,54 @@ func TestMakeNoAddrsAvailable(t *testing.T) {
 }
 
 func TestMakeMsgReply(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileURL := []byte("http://bootfileurl")
+	expectedDnsServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
+	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: []byte("id-1")}
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x11,
-		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileUrl, []net.IP{expectedDnsServerIp}, nil)
+	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x11,
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{expectedDnsServerIP}, nil)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
 	}
-	if transactionId != msg.TransactionID {
-		t.Fatalf("Expected transaction Id %v, got %v", transactionId, msg.TransactionID)
+	if transactionID != msg.TransactionID {
+		t.Fatalf("Expected transaction ID %v, got %v", transactionID, msg.TransactionID)
 	}
 
-	clientIdOption := msg.Options.ClientId()
-	if clientIdOption == nil {
-		t.Fatalf("Client Id option should be present")
+	clientIDOption := msg.Options.ClientID()
+	if clientIDOption == nil {
+		t.Fatalf("Client ID option should be present")
 	}
-	if string(expectedClientId) != string(clientIdOption) {
-		t.Fatalf("Expected client id %v, got %v", expectedClientId, clientIdOption)
+	if string(expectedClientID) != string(clientIDOption) {
+		t.Fatalf("Expected Client id %v, got %v", expectedClientID, clientIDOption)
 	}
-	if len(expectedClientId) != len(clientIdOption) {
-		t.Fatalf("Expected client id length of %d, got %d", len(expectedClientId), len(clientIdOption))
-	}
-
-	serverIdOption := msg.Options.ServerId()
-	if serverIdOption == nil {
-		t.Fatalf("Server Id option should be present")
-	}
-	if string(expectedServerId) != string(serverIdOption) {
-		t.Fatalf("Expected server id %v, got %v", expectedClientId, serverIdOption)
-	}
-	if len(expectedServerId) != len(serverIdOption) {
-		t.Fatalf("Expected server id length of %d, got %d", len(expectedClientId), len(serverIdOption))
+	if len(expectedClientID) != len(clientIDOption) {
+		t.Fatalf("Expected Client id length of %d, got %d", len(expectedClientID), len(clientIDOption))
 	}
 
-	bootfileUrlOption := msg.Options.BootfileUrl()
-	if bootfileUrlOption == nil {
+	serverIDOption := msg.Options.ServerID()
+	if serverIDOption == nil {
+		t.Fatalf("Server ID option should be present")
+	}
+	if string(expectedServerID) != string(serverIDOption) {
+		t.Fatalf("Expected server id %v, got %v", expectedClientID, serverIDOption)
+	}
+	if len(expectedServerID) != len(serverIDOption) {
+		t.Fatalf("Expected server id length of %d, got %d", len(expectedClientID), len(serverIDOption))
+	}
+
+	bootfileURLOption := msg.Options.BootFileURL()
+	if bootfileURLOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
-	if string(expectedBootFileUrl) != string(bootfileUrlOption) {
-		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	if string(expectedBootFileURL) != string(bootfileURLOption) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileURL, bootfileURLOption)
 	}
 
 	iaNaOption := msg.Options[OptIaNa]
@@ -236,73 +236,73 @@ func TestMakeMsgReply(t *testing.T) {
 		t.Fatalf("interface non-temporary association option should be present")
 	}
 
-	dnsServersOption := msg.Options[OptRecursiveDns]
+	dnsServersOption := msg.Options[OptRecursiveDNS]
 	if dnsServersOption == nil {
 		t.Fatalf("DNS servers option should be set")
 	}
-	if string(dnsServersOption[0].Value) != string(expectedDnsServerIp) {
-		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIp, net.IP(dnsServersOption[0].Value))
+	if string(dnsServersOption[0].Value) != string(expectedDnsServerIP) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIP, net.IP(dnsServersOption[0].Value))
 	}
 }
 
 func TestMakeMsgReplyShouldSkipDnsServersIfNoneWereConfigured(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileURL := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: []byte("id-1")}
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x11,
-		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileUrl, []net.IP{}, nil)
+	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x11,
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{}, nil)
 
-	_, exists := msg.Options[OptRecursiveDns]; if exists {
+	_, exists := msg.Options[OptRecursiveDNS]; if exists {
 		t.Fatalf("Dns servers option shouldn't be present")
 	}
 }
 
 func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileURL := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: []byte("id-1")}
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x10,
-		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileUrl, []net.IP{}, nil)
+	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x10,
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{}, nil)
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
 		t.Fatalf("Vendor class option should be present")
 	}
 
-	bootfileUrlOption := msg.Options.BootfileUrl()
-	if bootfileUrlOption == nil {
+	bootfileURLOption := msg.Options.BootFileURL()
+	if bootfileURLOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
-	if string(expectedBootFileUrl) != string(bootfileUrlOption) {
-		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	if string(expectedBootFileURL) != string(bootfileURLOption) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileURL, bootfileURLOption)
 	}
 }
 
 func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedIp := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	identityAssociation := &IdentityAssociation{IpAddress: expectedIp, InterfaceId: []byte("id-1")}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedBootFileURL := []byte("http://bootfileurl")
+	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: []byte("id-1")}
 	expectedErrorMessage := "Boom!"
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionId, expectedServerId, expectedClientId, 0x10,
-		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileUrl, []net.IP{},
+	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x10,
+		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileURL, []net.IP{},
 		fmt.Errorf(expectedErrorMessage))
 
 	iaNaOption := msg.Options[OptIaNa]
@@ -325,16 +325,16 @@ func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to unmarshal IaNa options: %s", err)
 	}
-	if possiblyIaAddrOption.Id != OptIaAddr {
-		t.Fatalf("Expected option 5 (ia address), got %d", possiblyIaAddrOption.Id)
+	if possiblyIaAddrOption.ID != OptIaAddr {
+		t.Fatalf("Expected option 5 (ia address), got %d", possiblyIaAddrOption.ID)
 	}
 
 	possiblyStatusOption, err := UnmarshalOption(failedIaNaOption[12:])
 	if err != nil {
 		t.Fatalf("Failed to unmarshal IaNa options: %s", err)
 	}
-	if possiblyStatusOption.Id != OptStatusCode {
-		t.Fatalf("Expected option 13 (status code), got %d", possiblyStatusOption.Id)
+	if possiblyStatusOption.ID != OptStatusCode {
+		t.Fatalf("Expected option 13 (status code), got %d", possiblyStatusOption.ID)
 	}
 	if binary.BigEndian.Uint16(possiblyStatusOption.Value[0:2]) != uint16(2) {
 		t.Fatalf("Expected status code 2, got %d", binary.BigEndian.Uint16(possiblyStatusOption.Value[0:2]))
@@ -345,147 +345,147 @@ func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
 }
 
 func TestMakeMsgInformationRequestReply(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedBootFileUrl := []byte("http://bootfileurl")
-	expectedDnsServerIp := net.ParseIP("2001:db8:f00f:cafe::99")
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedBootFileURL := []byte("http://bootfileurl")
+	expectedDnsServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, 0x11,
-		expectedBootFileUrl, []net.IP{expectedDnsServerIp})
+	msg := builder.MakeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x11,
+		expectedBootFileURL, []net.IP{expectedDnsServerIP})
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
 	}
-	if transactionId != msg.TransactionID {
-		t.Fatalf("Expected transaction Id %v, got %v", transactionId, msg.TransactionID)
+	if transactionID != msg.TransactionID {
+		t.Fatalf("Expected transaction ID %v, got %v", transactionID, msg.TransactionID)
 	}
 
-	clientIdOption := msg.Options.ClientId()
-	if clientIdOption == nil {
-		t.Fatalf("Client Id option should be present")
+	clientIDOption := msg.Options.ClientID()
+	if clientIDOption == nil {
+		t.Fatalf("Client ID option should be present")
 	}
-	if string(expectedClientId) != string(clientIdOption) {
-		t.Fatalf("Expected client id %v, got %v", expectedClientId, clientIdOption)
+	if string(expectedClientID) != string(clientIDOption) {
+		t.Fatalf("Expected Client id %v, got %v", expectedClientID, clientIDOption)
 	}
-	if len(expectedClientId) != len(clientIdOption) {
-		t.Fatalf("Expected client id length of %d, got %d", len(expectedClientId), len(clientIdOption))
-	}
-
-	serverIdOption := msg.Options.ServerId()
-	if serverIdOption == nil {
-		t.Fatalf("Server Id option should be present")
-	}
-	if string(expectedServerId) != string(serverIdOption) {
-		t.Fatalf("Expected server id %v, got %v", expectedClientId, serverIdOption)
-	}
-	if len(expectedServerId) != len(serverIdOption) {
-		t.Fatalf("Expected server id length of %d, got %d", len(expectedClientId), len(serverIdOption))
+	if len(expectedClientID) != len(clientIDOption) {
+		t.Fatalf("Expected Client id length of %d, got %d", len(expectedClientID), len(clientIDOption))
 	}
 
-	bootfileUrlOption := msg.Options.BootfileUrl()
-	if bootfileUrlOption == nil {
+	serverIDOption := msg.Options.ServerID()
+	if serverIDOption == nil {
+		t.Fatalf("Server ID option should be present")
+	}
+	if string(expectedServerID) != string(serverIDOption) {
+		t.Fatalf("Expected server id %v, got %v", expectedClientID, serverIDOption)
+	}
+	if len(expectedServerID) != len(serverIDOption) {
+		t.Fatalf("Expected server id length of %d, got %d", len(expectedClientID), len(serverIDOption))
+	}
+
+	bootfileURLOption := msg.Options.BootFileURL()
+	if bootfileURLOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
-	if string(expectedBootFileUrl) != string(bootfileUrlOption) {
-		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	if string(expectedBootFileURL) != string(bootfileURLOption) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileURL, bootfileURLOption)
 	}
 
-	dnsServersOption := msg.Options[OptRecursiveDns]
+	dnsServersOption := msg.Options[OptRecursiveDNS]
 	if dnsServersOption == nil {
 		t.Fatalf("DNS servers option should be set")
 	}
-	if string(dnsServersOption[0].Value) != string(expectedDnsServerIp) {
-		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIp, net.IP(dnsServersOption[0].Value))
+	if string(dnsServersOption[0].Value) != string(expectedDnsServerIP) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIP, net.IP(dnsServersOption[0].Value))
 	}
 }
 
 func TestMakeMsgInformationRequestReplyShouldSkipDnsServersIfNoneWereConfigured(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedBootFileUrl := []byte("http://bootfileurl")
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedBootFileURL := []byte("http://bootfileurl")
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, 0x11,
-		expectedBootFileUrl, []net.IP{})
+	msg := builder.MakeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x11,
+		expectedBootFileURL, []net.IP{})
 
-	_, exists := msg.Options[OptRecursiveDns]; if exists {
+	_, exists := msg.Options[OptRecursiveDNS]; if exists {
 		t.Fatalf("Dns servers option shouldn't be present")
 	}
 }
 
 func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
-	expectedBootFileUrl := []byte("http://bootfileurl")
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
+	expectedBootFileURL := []byte("http://bootfileurl")
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionId, expectedServerId, expectedClientId, 0x10,
-		expectedBootFileUrl, []net.IP{})
+	msg := builder.MakeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x10,
+		expectedBootFileURL, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
 	if vendorClassOption == nil {
 		t.Fatalf("Vendor class option should be present")
 	}
 
-	bootfileUrlOption := msg.Options.BootfileUrl()
-	if bootfileUrlOption == nil {
+	bootfileURLOption := msg.Options.BootFileURL()
+	if bootfileURLOption == nil {
 		t.Fatalf("Bootfile URL option should be present")
 	}
-	if string(expectedBootFileUrl) != string(bootfileUrlOption) {
-		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileUrl, bootfileUrlOption)
+	if string(expectedBootFileURL) != string(bootfileURLOption) {
+		t.Fatalf("Expected bootfile URL %v, got %v", expectedBootFileURL, bootfileURLOption)
 	}
 }
 
 func TestMakeMsgReleaseReply(t *testing.T) {
-	expectedClientId := []byte("clientid")
-	expectedServerId := []byte("serverid")
-	transactionId := [3]byte{'1', '2', '3'}
+	expectedClientID := []byte("clientid")
+	expectedServerID := []byte("serverid")
+	transactionID := [3]byte{'1', '2', '3'}
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReleaseReply(transactionId, expectedServerId, expectedClientId)
+	msg := builder.MakeMsgReleaseReply(transactionID, expectedServerID, expectedClientID)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
 	}
-	if transactionId != msg.TransactionID {
-		t.Fatalf("Expected transaction Id %v, got %v", transactionId, msg.TransactionID)
+	if transactionID != msg.TransactionID {
+		t.Fatalf("Expected transaction ID %v, got %v", transactionID, msg.TransactionID)
 	}
 
-	clientIdOption := msg.Options.ClientId()
-	if clientIdOption == nil {
-		t.Fatalf("Client Id option should be present")
+	clientIDOption := msg.Options.ClientID()
+	if clientIDOption == nil {
+		t.Fatalf("Client ID option should be present")
 	}
-	if string(expectedClientId) != string(clientIdOption) {
-		t.Fatalf("Expected client id %v, got %v", expectedClientId, clientIdOption)
+	if string(expectedClientID) != string(clientIDOption) {
+		t.Fatalf("Expected Client id %v, got %v", expectedClientID, clientIDOption)
 	}
-	if len(expectedClientId) != len(clientIdOption) {
-		t.Fatalf("Expected client id length of %d, got %d", len(expectedClientId), len(clientIdOption))
+	if len(expectedClientID) != len(clientIDOption) {
+		t.Fatalf("Expected Client id length of %d, got %d", len(expectedClientID), len(clientIDOption))
 	}
 
-	serverIdOption := msg.Options.ServerId()
-	if serverIdOption == nil {
-		t.Fatalf("Server Id option should be present")
+	serverIDOption := msg.Options.ServerID()
+	if serverIDOption == nil {
+		t.Fatalf("Server ID option should be present")
 	}
-	if string(expectedServerId) != string(serverIdOption) {
-		t.Fatalf("Expected server id %v, got %v", expectedClientId, serverIdOption)
+	if string(expectedServerID) != string(serverIDOption) {
+		t.Fatalf("Expected server id %v, got %v", expectedClientID, serverIDOption)
 	}
-	if len(expectedServerId) != len(serverIdOption) {
-		t.Fatalf("Expected server id length of %d, got %d", len(expectedClientId), len(serverIdOption))
+	if len(expectedServerID) != len(serverIDOption) {
+		t.Fatalf("Expected server id length of %d, got %d", len(expectedClientID), len(serverIDOption))
 	}
 }
 
 func TestExtractLLAddressOrIdWithDUIDLLT(t *testing.T) {
 	builder := &PacketBuilder{}
 	expectedLLAddress := []byte{0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
-	llAddress := builder.ExtractLLAddressOrId([]byte{0x0, 0x1, 0x0, 0x1, 0x1, 0x2, 0x3, 0x4, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	llAddress := builder.ExtractLLAddressOrID([]byte{0x0, 0x1, 0x0, 0x1, 0x1, 0x2, 0x3, 0x4, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
 	if string(expectedLLAddress) != string(llAddress) {
 		t.Fatalf("Expected ll address %x, got: %x", expectedLLAddress, llAddress)
 	}
@@ -494,7 +494,7 @@ func TestExtractLLAddressOrIdWithDUIDLLT(t *testing.T) {
 func TestExtractLLAddressOrIdWithDUIDEN(t *testing.T) {
 	builder := &PacketBuilder{}
 	expectedId := []byte{0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
-	id := builder.ExtractLLAddressOrId([]byte{0x0, 0x2, 0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	id := builder.ExtractLLAddressOrID([]byte{0x0, 0x2, 0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
 	if string(expectedId) != string(id) {
 		t.Fatalf("Expected id %x, got: %x", expectedId, id)
 	}
@@ -503,7 +503,7 @@ func TestExtractLLAddressOrIdWithDUIDEN(t *testing.T) {
 func TestExtractLLAddressOrIdWithDUIDLL(t *testing.T) {
 	builder := &PacketBuilder{}
 	expectedLLAddress := []byte{0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
-	llAddress := builder.ExtractLLAddressOrId([]byte{0x0, 0x3, 0x0, 0x1, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	llAddress := builder.ExtractLLAddressOrID([]byte{0x0, 0x3, 0x0, 0x1, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
 	if string(expectedLLAddress) != string(llAddress) {
 		t.Fatalf("Expected ll address %x, got: %x", expectedLLAddress, llAddress)
 	}

@@ -6,13 +6,13 @@ import (
 )
 
 type IdentityAssociation struct {
-	IpAddress   net.IP
-	ClientId    []byte
-	InterfaceId []byte
+	IPAddress   net.IP
+	ClientID    []byte
+	InterfaceID []byte
 	CreatedAt   time.Time
 }
 
 type AddressPool interface {
-	ReserveAddresses(clientId []byte, interfaceIds [][]byte) ([]*IdentityAssociation, error)
-	ReleaseAddresses(clientId []byte, interfaceIds [][]byte)
+	ReserveAddresses(clientID []byte, interfaceIds [][]byte) ([]*IdentityAssociation, error)
+	ReleaseAddresses(clientID []byte, interfaceIds [][]byte)
 }

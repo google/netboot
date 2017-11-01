@@ -7,42 +7,42 @@ import (
 )
 
 func TestReserveAddress(t *testing.T) {
-	expectedIp1 := net.ParseIP("2001:db8:f00f:cafe::1")
-	expectedIp2 := net.ParseIP("2001:db8:f00f:cafe::2")
-	expectedClientId := []byte("client-id")
-	expectedIaId1 := []byte("interface-id-1")
-	expectedIaId2 := []byte("interface-id-2")
+	expectedIP1 := net.ParseIP("2001:db8:f00f:cafe::1")
+	expectedIP2 := net.ParseIP("2001:db8:f00f:cafe::2")
+	expectedClientID := []byte("Client-id")
+	expectedIAID1 := []byte("interface-id-1")
+	expectedIAID2 := []byte("interface-id-2")
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
-	pool := NewRandomAddressPool(expectedIp1, 2, expectedMaxLifetime)
+	pool := NewRandomAddressPool(expectedIP1, 2, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	ias, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId1, expectedIaId2})
+	ias, _ := pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID1, expectedIAID2})
 
 	if len(ias) != 2 {
 		t.Fatalf("Expected 2 identity associations but received %d", len(ias))
 	}
-	if string(ias[0].IpAddress) !=  string(expectedIp1) && string(ias[0].IpAddress) !=  string(expectedIp2) {
-		t.Fatalf("Unexpected ip address: %v", ias[0].IpAddress)
+	if string(ias[0].IPAddress) !=  string(expectedIP1) && string(ias[0].IPAddress) !=  string(expectedIP2) {
+		t.Fatalf("Unexpected ip address: %v", ias[0].IPAddress)
 	}
-	if string(ias[0].ClientId) !=  string(expectedClientId) {
-		t.Fatalf("Expected client id: %v, but got: %v", expectedClientId, ias[0].ClientId)
+	if string(ias[0].ClientID) !=  string(expectedClientID) {
+		t.Fatalf("Expected Client id: %v, but got: %v", expectedClientID, ias[0].ClientID)
 	}
-	if string(ias[0].InterfaceId) !=  string(expectedIaId1) {
-		t.Fatalf("Expected interface id: %v, but got: %v", expectedIaId1, ias[0].InterfaceId)
+	if string(ias[0].InterfaceID) !=  string(expectedIAID1) {
+		t.Fatalf("Expected interface id: %v, but got: %v", expectedIAID1, ias[0].InterfaceID)
 	}
 	if ias[0].CreatedAt != expectedTime {
 		t.Fatalf("Expected creation time: %v, but got: %v", expectedTime, ias[0].CreatedAt)
 	}
 
-	if string(ias[1].IpAddress) !=  string(expectedIp1) && string(ias[1].IpAddress) !=  string(expectedIp2) {
-		t.Fatalf("Unexpected ip address: %v", ias[0].IpAddress)
+	if string(ias[1].IPAddress) !=  string(expectedIP1) && string(ias[1].IPAddress) !=  string(expectedIP2) {
+		t.Fatalf("Unexpected ip address: %v", ias[0].IPAddress)
 	}
-	if string(ias[1].ClientId) !=  string(expectedClientId) {
-		t.Fatalf("Expected client id: %v, but got: %v", expectedClientId, ias[1].ClientId)
+	if string(ias[1].ClientID) !=  string(expectedClientID) {
+		t.Fatalf("Expected Client id: %v, but got: %v", expectedClientID, ias[1].ClientID)
 	}
-	if string(ias[1].InterfaceId) !=  string(expectedIaId2) {
-		t.Fatalf("Expected interface id: %v, but got: %v", expectedIaId2, ias[1].InterfaceId)
+	if string(ias[1].InterfaceID) !=  string(expectedIAID2) {
+		t.Fatalf("Expected interface id: %v, but got: %v", expectedIAID2, ias[1].InterfaceID)
 	}
 	if ias[1].CreatedAt != expectedTime {
 		t.Fatalf("Expected creation time: %v, but got: %v", expectedTime, ias[1].CreatedAt)
@@ -50,35 +50,35 @@ func TestReserveAddress(t *testing.T) {
 }
 
 func TestReserveAddressUpdatesAddressPool(t *testing.T) {
-	expectedClientId := []byte("client-id")
-	expectedIaId := []byte("interface-id")
+	expectedClientID := []byte("Client-id")
+	expectedIAID := []byte("interface-id")
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
 	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
-	expectedIdx := pool.calculateIaIdHash(expectedClientId, expectedIaId)
+	pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID})
+	expectedIdx := pool.calculateIAIDHash(expectedClientID, expectedIAID)
 
 	a, exists := pool.identityAssociations[expectedIdx]
 	if !exists {
 		t.Fatalf("Expected to find identity association at %d but didn't", expectedIdx)
 	}
-	if string(a.ClientId) != string(expectedClientId) || string(a.InterfaceId) != string(expectedIaId) {
-		t.Fatalf("Expected ia association with client id %x and ia id %x, but got %x %x respectively",
-			expectedClientId, expectedIaId, a.ClientId, a.InterfaceId)
+	if string(a.ClientID) != string(expectedClientID) || string(a.InterfaceID) != string(expectedIAID) {
+		t.Fatalf("Expected ia association with Client id %x and ia id %x, but got %x %x respectively",
+			expectedClientID, expectedIAID, a.ClientID, a.InterfaceID)
 	}
 }
 
 func TestReserveAddressKeepsTrackOfUsedAddresses(t *testing.T) {
-	expectedClientId := []byte("client-id")
-	expectedIaId := []byte("interface-id")
+	expectedClientID := []byte("Client-id")
+	expectedIAID := []byte("interface-id")
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
 	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
+	pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID})
 
 	_, exists := pool.usedIps[0x01]; if !exists {
 		t.Fatal("'2001:db8:f00f:cafe::1' should be marked as in use")
@@ -86,14 +86,14 @@ func TestReserveAddressKeepsTrackOfUsedAddresses(t *testing.T) {
 }
 
 func TestReserveAddressKeepsTrackOfAssociationExpiration(t *testing.T) {
-	expectedClientId := []byte("client-id")
-	expectedIaId := []byte("interface-id")
+	expectedClientID := []byte("Client-id")
+	expectedIAID := []byte("interface-id")
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
 	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
+	pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID})
 
 	expiration := pool.identityAssociationExpirations.Peek().(*AssociationExpiration)
 	if expiration == nil {
@@ -106,15 +106,15 @@ func TestReserveAddressKeepsTrackOfAssociationExpiration(t *testing.T) {
 }
 
 func TestReserveAddressReturnsExistingAssociation(t *testing.T) {
-	expectedClientId := []byte("client-id")
-	expectedIaId := []byte("interface-id")
+	expectedClientID := []byte("Client-id")
+	expectedIAID := []byte("interface-id")
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
 	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	firstAssociation, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
-	secondAssociation, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
+	firstAssociation, _ := pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID})
+	secondAssociation, _ := pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID})
 
 	if len(firstAssociation) < 1 {
 		t.Fatalf("No associations returned from the first call to ReserveAddresses")
@@ -122,24 +122,24 @@ func TestReserveAddressReturnsExistingAssociation(t *testing.T) {
 	if len(secondAssociation) < 1 {
 		t.Fatalf("No associations returned from the second call to ReserveAddresses")
 	}
-	if string(firstAssociation[0].IpAddress) != string(secondAssociation[0].IpAddress) {
+	if string(firstAssociation[0].IPAddress) != string(secondAssociation[0].IPAddress) {
 		t.Fatal("Expected return of the same ip address on both invocations")
 	}
 }
 
 func TestReleaseAddress(t *testing.T) {
-	expectedClientId := []byte("client-id")
-	expectedIaId := []byte("interface-id")
+	expectedClientID := []byte("Client-id")
+	expectedIAID := []byte("interface-id")
 	expectedTime := time.Now()
 	expectedMaxLifetime := uint32(100)
 
 	pool := NewRandomAddressPool(net.ParseIP("2001:db8:f00f:cafe::1"), 1, expectedMaxLifetime)
 	pool.timeNow = func() time.Time { return expectedTime }
-	a, _ := pool.ReserveAddresses(expectedClientId, [][]byte{expectedIaId})
+	a, _ := pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID})
 
-	pool.ReleaseAddresses(expectedClientId, [][]byte{expectedIaId})
+	pool.ReleaseAddresses(expectedClientID, [][]byte{expectedIAID})
 
-	_, exists := pool.identityAssociations[pool.calculateIaIdHash(expectedClientId, expectedIaId)]; if exists {
-		t.Fatalf("identity association for %v should've been removed, but is still available", a[0].IpAddress)
+	_, exists := pool.identityAssociations[pool.calculateIAIDHash(expectedClientID, expectedIAID)]; if exists {
+		t.Fatalf("identity association for %v should've been removed, but is still available", a[0].IPAddress)
 	}
 }

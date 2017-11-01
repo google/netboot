@@ -20,7 +20,7 @@ var ipv6ApiCmd = &cobra.Command{
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		apiUrl, err := cmd.Flags().GetString("api-request-url")
+		apiURL, err := cmd.Flags().GetString("api-request-url")
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
@@ -41,7 +41,7 @@ var ipv6ApiCmd = &cobra.Command{
 			fatalf("Please specify address to bind to")
 		} else {
 		}
-		if apiUrl == "" {
+		if apiURL == "" {
 			fatalf("Please specify ipxe config file url")
 		}
 		s.Address = addr
@@ -59,7 +59,7 @@ var ipv6ApiCmd = &cobra.Command{
 				dnsServerAddresses = append(dnsServerAddresses, net.ParseIP(dnsServerAddress))
 			}
 		}
-		s.BootConfig = dhcp6.MakeApiBootConfiguration(apiUrl, apiTimeout, preference,
+		s.BootConfig = dhcp6.MakeApiBootConfiguration(apiURL, apiTimeout, preference,
 			cmd.Flags().Changed("preference"), dnsServerAddresses)
 
 		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")
@@ -81,7 +81,7 @@ var ipv6ApiCmd = &cobra.Command{
 	},
 }
 
-func serverv6ApiConfigFlags(cmd *cobra.Command) {
+func serverv6APIConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("listen-addr", "", "", "IPv6 address to listen on")
 	cmd.Flags().StringP("api-request-url", "", "", "Ipv6-specific API server url")
 	cmd.Flags().Duration("api-request-timeout", 5*time.Second, "Timeout for request to the API server")
@@ -95,6 +95,6 @@ func serverv6ApiConfigFlags(cmd *cobra.Command) {
 
 func init() {
 	rootCmd.AddCommand(ipv6ApiCmd)
-	serverv6ApiConfigFlags(ipv6ApiCmd)
+	serverv6APIConfigFlags(ipv6ApiCmd)
 }
 
