@@ -14,13 +14,13 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	transactionID := [3]byte{'1', '2', '3'}
 	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileURL := []byte("http://bootfileurl")
-	expectedDnsServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
+	expectedDNSServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
 	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: expectedInterfaceID}
 
 	builder := MakePacketBuilder(90, 100)
 
 	msg := builder.MakeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x11,
-		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{expectedDnsServerIP})
+		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{expectedDNSServerIP})
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -67,8 +67,8 @@ func TestMakeMsgAdvertise(t *testing.T) {
 	if dnsServersOption == nil {
 		t.Fatalf("DNS servers option should be set")
 	}
-	if string(dnsServersOption[0].Value) != string(expectedDnsServerIP) {
-		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIP, net.IP(dnsServersOption[0].Value))
+	if string(dnsServersOption[0].Value) != string(expectedDNSServerIP) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDNSServerIP, net.IP(dnsServersOption[0].Value))
 	}
 }
 
@@ -186,13 +186,13 @@ func TestMakeMsgReply(t *testing.T) {
 	transactionID := [3]byte{'1', '2', '3'}
 	expectedIP := net.ParseIP("2001:db8:f00f:cafe::1")
 	expectedBootFileURL := []byte("http://bootfileurl")
-	expectedDnsServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
+	expectedDNSServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
 	identityAssociation := &IdentityAssociation{IPAddress: expectedIP, InterfaceID: []byte("id-1")}
 
 	builder := MakePacketBuilder(90, 100)
 
 	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x11,
-		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{expectedDnsServerIP}, nil)
+		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{expectedDNSServerIP}, nil)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -240,8 +240,8 @@ func TestMakeMsgReply(t *testing.T) {
 	if dnsServersOption == nil {
 		t.Fatalf("DNS servers option should be set")
 	}
-	if string(dnsServersOption[0].Value) != string(expectedDnsServerIP) {
-		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIP, net.IP(dnsServersOption[0].Value))
+	if string(dnsServersOption[0].Value) != string(expectedDNSServerIP) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDNSServerIP, net.IP(dnsServersOption[0].Value))
 	}
 }
 
@@ -349,12 +349,12 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	expectedServerID := []byte("serverid")
 	transactionID := [3]byte{'1', '2', '3'}
 	expectedBootFileURL := []byte("http://bootfileurl")
-	expectedDnsServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
+	expectedDNSServerIP := net.ParseIP("2001:db8:f00f:cafe::99")
 
 	builder := MakePacketBuilder(90, 100)
 
 	msg := builder.MakeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x11,
-		expectedBootFileURL, []net.IP{expectedDnsServerIP})
+		expectedBootFileURL, []net.IP{expectedDNSServerIP})
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -397,8 +397,8 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 	if dnsServersOption == nil {
 		t.Fatalf("DNS servers option should be set")
 	}
-	if string(dnsServersOption[0].Value) != string(expectedDnsServerIP) {
-		t.Fatalf("Expected dns server %v, got %v", expectedDnsServerIP, net.IP(dnsServersOption[0].Value))
+	if string(dnsServersOption[0].Value) != string(expectedDNSServerIP) {
+		t.Fatalf("Expected dns server %v, got %v", expectedDNSServerIP, net.IP(dnsServersOption[0].Value))
 	}
 }
 
@@ -493,10 +493,10 @@ func TestExtractLLAddressOrIdWithDUIDLLT(t *testing.T) {
 
 func TestExtractLLAddressOrIdWithDUIDEN(t *testing.T) {
 	builder := &PacketBuilder{}
-	expectedId := []byte{0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
+	expectedID := []byte{0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
 	id := builder.ExtractLLAddressOrID([]byte{0x0, 0x2, 0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
-	if string(expectedId) != string(id) {
-		t.Fatalf("Expected id %x, got: %x", expectedId, id)
+	if string(expectedID) != string(id) {
+		t.Fatalf("Expected id %x, got: %x", expectedID, id)
 	}
 }
 

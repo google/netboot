@@ -97,16 +97,16 @@ func (p *RandomAddressPool) ReserveAddresses(clientID []byte, interfaceIDs [][]b
 		for {
 			// we assume that ip addresses adhere to high 64 bits for net and subnet ids, low 64 bits are for host id rule
 			hostOffset := randomUint64(rng) % p.poolSize
-			newIp := big.NewInt(0).Add(p.poolStartAddress, big.NewInt(0).SetUint64(hostOffset))
-			_, exists := p.usedIps[newIp.Uint64()];
+			newIP := big.NewInt(0).Add(p.poolStartAddress, big.NewInt(0).SetUint64(hostOffset))
+			_, exists := p.usedIps[newIP.Uint64()];
 			if !exists {
 				timeNow := p.timeNow()
 				association := &IdentityAssociation{ClientID: clientID,
 					InterfaceID: interfaceID,
-					IPAddress: newIp.Bytes(),
+					IPAddress: newIP.Bytes(),
 					CreatedAt: timeNow}
 				p.identityAssociations[clientIDHash] = association
-				p.usedIps[newIp.Uint64()] = struct{}{}
+				p.usedIps[newIP.Uint64()] = struct{}{}
 				p.identityAssociationExpirations.Push(&AssociationExpiration{expiresAt: p.calculateAssociationExpiration(timeNow), ia: association})
 				ret = append(ret, association)
 				break
@@ -121,13 +121,13 @@ func  (p *RandomAddressPool) ReleaseAddresses(clientID []byte, interfaceIDs [][]
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	for _, interfaceId := range(interfaceIDs) {
-		association, exists := p.identityAssociations[p.calculateIAIDHash(clientID, interfaceId)]
+	for _, interfaceID := range(interfaceIDs) {
+		association, exists := p.identityAssociations[p.calculateIAIDHash(clientID, interfaceID)]
 		if !exists {
 			continue
 		}
 		delete(p.usedIps, big.NewInt(0).SetBytes(association.IPAddress).Uint64())
-		delete(p.identityAssociations, p.calculateIAIDHash(clientID, interfaceId))
+		delete(p.identityAssociations, p.calculateIAIDHash(clientID, interfaceID))
 	}
 }
 
