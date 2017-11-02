@@ -1,20 +1,10 @@
 package dhcp6
 
 import (
-	"io"
 	"net"
-	"time"
 	"golang.org/x/net/ipv6"
 	"fmt"
 )
-
-type conn interface {
-	io.Closer
-	Recv([]byte) (b []byte, addr *net.UDPAddr, ifidx int, err error)
-	Send(b []byte, addr *net.UDPAddr, ifidx int) error
-	SetReadDeadline(t time.Time) error
-	SetWriteDeadline(t time.Time) error
-}
 
 type Conn struct {
 	conn *ipv6.PacketConn

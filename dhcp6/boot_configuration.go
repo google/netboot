@@ -10,12 +10,14 @@ import (
 	"net"
 )
 
+// BootConfiguration implementation provides values for dhcp options served to dhcp clients
 type BootConfiguration interface {
 	GetBootURL(id []byte, clientArchType uint16) ([]byte, error)
 	GetPreference() []byte
 	GetRecursiveDNS() []net.IP
 }
 
+// StaticBootConfiguration provides values for dhcp options that remain unchanged until restart
 type StaticBootConfiguration struct {
 	HTTPBootURL   []byte
 	IPxeBootURL   []byte
@@ -24,6 +26,7 @@ type StaticBootConfiguration struct {
 	UsePreference bool
 }
 
+// MakeStaticBootConfiguration creates a new StaticBootConfiguration with provided values
 func MakeStaticBootConfiguration(httpBootURL, ipxeBootURL string, preference uint8, usePreference bool,
 		dnsServerAddresses []net.IP) *StaticBootConfiguration {
 	ret := &StaticBootConfiguration{HTTPBootURL: []byte(httpBootURL), IPxeBootURL: []byte(ipxeBootURL), UsePreference: usePreference}
@@ -35,6 +38,7 @@ func MakeStaticBootConfiguration(httpBootURL, ipxeBootURL string, preference uin
 	return ret
 }
 
+// GetBootURL returns Boot File URL, see RFC 5970
 func (bc *StaticBootConfiguration) GetBootURL(id []byte, clientArchType uint16) ([]byte, error) {
 	if 0x10 ==  clientArchType {
 		return bc.HTTPBootURL, nil
@@ -42,14 +46,18 @@ func (bc *StaticBootConfiguration) GetBootURL(id []byte, clientArchType uint16) 
 	return bc.IPxeBootURL, nil
 }
 
+// GetPreference returns server's Preference, see RFC 3315
 func (bc *StaticBootConfiguration) GetPreference() []byte {
 	return bc.Preference
 }
 
+// GetRecursiveDNS returns list of addresses of recursive DNS servers, see RFC 3646
 func (bc *StaticBootConfiguration) GetRecursiveDNS() []net.IP {
 	return bc.RecursiveDNS
 }
 
+// APIBootConfiguration provides an interface to retrieve Boot File URL from an external server based on
+// client ID and architecture type
 type APIBootConfiguration struct {
 	Client        *http.Client
 	URLPrefix     string
@@ -58,6 +66,7 @@ type APIBootConfiguration struct {
 	UsePreference bool
 }
 
+// MakeApiBootConfiguration creates a new APIBootConfiguration initialized with provided values
 func MakeApiBootConfiguration(url string, timeout time.Duration, preference uint8, usePreference bool,
 		dnsServerAddresses []net.IP) *APIBootConfiguration {
 	if !strings.HasSuffix(url, "/") {
@@ -77,6 +86,7 @@ func MakeApiBootConfiguration(url string, timeout time.Duration, preference uint
 	return ret
 }
 
+// GetBootURL returns Boot File URL, see RFC 5970
 func (bc *APIBootConfiguration) GetBootURL(id []byte, clientArchType uint16) ([]byte, error) {
 	reqURL := fmt.Sprintf("%s/boot/%x/%d", bc.URLPrefix, id, clientArchType)
 	resp, err := bc.Client.Get(reqURL)
@@ -111,10 +121,12 @@ func (bc *APIBootConfiguration) makeURLAbsolute(urlStr string) (string, error) {
 	return u.String(), nil
 }
 
+// GetPreference returns server's Preference, see RFC 3315
 func (bc *APIBootConfiguration) GetPreference() []byte {
 	return bc.Preference
 }
 
+// GetRecursiveDNS returns list of addresses of recursive DNS servers, see RFC 3646
 func (bc *APIBootConfiguration) GetRecursiveDNS() []net.IP {
 	return bc.RecursiveDNS
 }
