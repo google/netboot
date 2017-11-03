@@ -6,53 +6,56 @@ import (
 	"net"
 )
 
+// PacketBuilder is used for generating responses to requests received from dhcp clients
 type PacketBuilder struct {
 	PreferredLifetime uint32
 	ValidLifetime     uint32
 }
 
+// MakePacketBuilder creates a new PacketBuilder and initializes it with preferred and valid lifetimes
 func MakePacketBuilder(preferredLifetime, validLifetime uint32) *PacketBuilder {
 	return &PacketBuilder{PreferredLifetime: preferredLifetime, ValidLifetime: validLifetime}
 }
 
+// BuildResponse generates a response packet for a packet received from a client
 func (b *PacketBuilder) BuildResponse(in *Packet, serverDUID []byte, configuration BootConfiguration, addresses AddressPool) (*Packet, error) {
 	switch in.Type {
 	case MsgSolicit:
-		bootFileURL, err := configuration.GetBootURL(b.ExtractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
+		bootFileURL, err := configuration.GetBootURL(b.extractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
 		associations, err := addresses.ReserveAddresses(in.Options.ClientID(), in.Options.IaNaIDs())
 		if err != nil {
-			return b.MakeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, serverDUID, in.Options.ClientID(), err), err
+			return b.makeMsgAdvertiseWithNoAddrsAvailable(in.TransactionID, serverDUID, in.Options.ClientID(), err), err
 		}
-		return b.MakeMsgAdvertise(in.TransactionID, serverDUID, in.Options.ClientID(),
+		return b.makeMsgAdvertise(in.TransactionID, serverDUID, in.Options.ClientID(),
 			in.Options.ClientArchType(), associations, bootFileURL, configuration.GetPreference(), configuration.GetRecursiveDNS()), nil
 	case MsgRequest:
-		bootFileURL, err := configuration.GetBootURL(b.ExtractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
+		bootFileURL, err := configuration.GetBootURL(b.extractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
 		associations, err := addresses.ReserveAddresses(in.Options.ClientID(), in.Options.IaNaIDs())
-		return b.MakeMsgReply(in.TransactionID, serverDUID, in.Options.ClientID(),
+		return b.makeMsgReply(in.TransactionID, serverDUID, in.Options.ClientID(),
 				in.Options.ClientArchType(), associations, iasWithoutAddesses(associations, in.Options.IaNaIDs()), bootFileURL,
 				configuration.GetRecursiveDNS(), err), err
 	case MsgInformationRequest:
-		bootFileURL, err := configuration.GetBootURL(b.ExtractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
+		bootFileURL, err := configuration.GetBootURL(b.extractLLAddressOrID(in.Options.ClientID()), in.Options.ClientArchType())
 		if err != nil {
 			return nil, err
 		}
-		return b.MakeMsgInformationRequestReply(in.TransactionID, serverDUID, in.Options.ClientID(),
+		return b.makeMsgInformationRequestReply(in.TransactionID, serverDUID, in.Options.ClientID(),
 			in.Options.ClientArchType(), bootFileURL, configuration.GetRecursiveDNS()), nil
 	case MsgRelease:
 		addresses.ReleaseAddresses(in.Options.ClientID(), in.Options.IaNaIDs())
-		return b.MakeMsgReleaseReply(in.TransactionID, serverDUID, in.Options.ClientID()), nil
+		return b.makeMsgReleaseReply(in.TransactionID, serverDUID, in.Options.ClientID()), nil
 	default:
 		return nil, nil
 	}
 }
 
-func (b *PacketBuilder) MakeMsgAdvertise(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
+func (b *PacketBuilder) makeMsgAdvertise(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
 	associations []*IdentityAssociation, bootFileURL, preference []byte, dnsServers []net.IP) *Packet {
 	retOptions := make(Options)
 	retOptions.AddOption(MakeOption(OptClientID, clientID))
@@ -72,7 +75,7 @@ func (b *PacketBuilder) MakeMsgAdvertise(transactionID [3]byte, serverDUID, clie
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
+func (b *PacketBuilder) makeMsgReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
 	associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileURL []byte, dnsServers []net.IP, err error) *Packet {
 	retOptions := make(Options)
 	retOptions.AddOption(MakeOption(OptClientID, clientID))
@@ -94,7 +97,7 @@ func (b *PacketBuilder) MakeMsgReply(transactionID [3]byte, serverDUID, clientID
 	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
+func (b *PacketBuilder) makeMsgInformationRequestReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
 	bootFileURL []byte, dnsServers []net.IP) *Packet {
 	retOptions := make(Options)
 	retOptions.AddOption(MakeOption(OptClientID, clientID))
@@ -108,7 +111,7 @@ func (b *PacketBuilder) MakeMsgInformationRequestReply(transactionID [3]byte, se
 	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgReleaseReply(transactionID [3]byte, serverDUID, clientID []byte) *Packet {
+func (b *PacketBuilder) makeMsgReleaseReply(transactionID [3]byte, serverDUID, clientID []byte) *Packet {
 	retOptions := make(Options)
 
 	retOptions.AddOption(MakeOption(OptClientID, clientID))
@@ -120,7 +123,7 @@ func (b *PacketBuilder) MakeMsgReleaseReply(transactionID [3]byte, serverDUID, c
 	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
 
-func (b *PacketBuilder) MakeMsgAdvertiseWithNoAddrsAvailable(transactionID [3]byte, serverDUID, clientID []byte, err error) *Packet {
+func (b *PacketBuilder) makeMsgAdvertiseWithNoAddrsAvailable(transactionID [3]byte, serverDUID, clientID []byte, err error) *Packet {
 	retOptions := make(Options)
 	retOptions.AddOption(MakeOption(OptClientID, clientID))
 	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
@@ -136,7 +139,7 @@ func (b *PacketBuilder) calculateT2() uint32 {
 	return (b.PreferredLifetime * 4)/5
 }
 
-func (b *PacketBuilder) ExtractLLAddressOrID(optClientID []byte) []byte {
+func (b *PacketBuilder) extractLLAddressOrID(optClientID []byte) []byte {
 	idType := binary.BigEndian.Uint16(optClientID[0:2])
 	switch idType {
 	case 1:

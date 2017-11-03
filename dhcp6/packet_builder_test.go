@@ -19,7 +19,7 @@ func TestMakeMsgAdvertise(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x11,
+	msg := builder.makeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x11,
 		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{expectedDNSServerIP})
 
 	if msg.Type != MsgAdvertise {
@@ -83,7 +83,7 @@ func TestMakeMsgAdvertiseShouldSkipDnsServersIfNoneConfigured(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x11,
+	msg := builder.makeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x11,
 		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{})
 
 	_, exists := msg.Options[OptRecursiveDNS]; if exists {
@@ -97,7 +97,7 @@ func TestShouldSetPreferenceOptionWhenSpecified(t *testing.T) {
 	builder := MakePacketBuilder(90, 100)
 
 	expectedPreference := []byte{128}
-	msg := builder.MakeMsgAdvertise([3]byte{'t', 'i', 'd'}, []byte("serverid"), []byte("clientid"), 0x11,
+	msg := builder.makeMsgAdvertise([3]byte{'t', 'i', 'd'}, []byte("serverid"), []byte("clientid"), 0x11,
 		[]*IdentityAssociation{identityAssociation}, []byte("http://bootfileurl"), expectedPreference, []net.IP{})
 
 	preferenceOption := msg.Options[OptPreference]
@@ -119,7 +119,7 @@ func TestMakeMsgAdvertiseWithHttpClientArch(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x10,
+	msg := builder.makeMsgAdvertise(transactionID, expectedServerID, expectedClientID, 0x10,
 		[]*IdentityAssociation{identityAssociation}, expectedBootFileURL, nil, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
@@ -143,7 +143,7 @@ func TestMakeNoAddrsAvailable(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgAdvertiseWithNoAddrsAvailable(transactionID, expectedServerID, expectedClientID, fmt.Errorf(expectedMessage))
+	msg := builder.makeMsgAdvertiseWithNoAddrsAvailable(transactionID, expectedServerID, expectedClientID, fmt.Errorf(expectedMessage))
 
 	if msg.Type != MsgAdvertise {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -191,7 +191,7 @@ func TestMakeMsgReply(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x11,
+	msg := builder.makeMsgReply(transactionID, expectedServerID, expectedClientID, 0x11,
 		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{expectedDNSServerIP}, nil)
 
 	if msg.Type != MsgReply {
@@ -255,7 +255,7 @@ func TestMakeMsgReplyShouldSkipDnsServersIfNoneWereConfigured(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x11,
+	msg := builder.makeMsgReply(transactionID, expectedServerID, expectedClientID, 0x11,
 		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{}, nil)
 
 	_, exists := msg.Options[OptRecursiveDNS]; if exists {
@@ -273,7 +273,7 @@ func TestMakeMsgReplyWithHttpClientArch(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x10,
+	msg := builder.makeMsgReply(transactionID, expectedServerID, expectedClientID, 0x10,
 		[]*IdentityAssociation{identityAssociation}, make([][]byte, 0), expectedBootFileURL, []net.IP{}, nil)
 
 	vendorClassOption := msg.Options[OptVendorClass]
@@ -301,7 +301,7 @@ func TestMakeMsgReplyWithNoAddrsAvailable(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReply(transactionID, expectedServerID, expectedClientID, 0x10,
+	msg := builder.makeMsgReply(transactionID, expectedServerID, expectedClientID, 0x10,
 		[]*IdentityAssociation{identityAssociation}, [][]byte{[]byte("id-2")}, expectedBootFileURL, []net.IP{},
 		fmt.Errorf(expectedErrorMessage))
 
@@ -353,7 +353,7 @@ func TestMakeMsgInformationRequestReply(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x11,
+	msg := builder.makeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x11,
 		expectedBootFileURL, []net.IP{expectedDNSServerIP})
 
 	if msg.Type != MsgReply {
@@ -410,7 +410,7 @@ func TestMakeMsgInformationRequestReplyShouldSkipDnsServersIfNoneWereConfigured(
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x11,
+	msg := builder.makeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x11,
 		expectedBootFileURL, []net.IP{})
 
 	_, exists := msg.Options[OptRecursiveDNS]; if exists {
@@ -426,7 +426,7 @@ func TestMakeMsgInformationRequestReplyWithHttpClientArch(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x10,
+	msg := builder.makeMsgInformationRequestReply(transactionID, expectedServerID, expectedClientID, 0x10,
 		expectedBootFileURL, []net.IP{})
 
 	vendorClassOption := msg.Options[OptVendorClass]
@@ -450,7 +450,7 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 
 	builder := MakePacketBuilder(90, 100)
 
-	msg := builder.MakeMsgReleaseReply(transactionID, expectedServerID, expectedClientID)
+	msg := builder.makeMsgReleaseReply(transactionID, expectedServerID, expectedClientID)
 
 	if msg.Type != MsgReply {
 		t.Fatalf("Expected message type %d, got %d", MsgAdvertise, msg.Type)
@@ -485,7 +485,7 @@ func TestMakeMsgReleaseReply(t *testing.T) {
 func TestExtractLLAddressOrIdWithDUIDLLT(t *testing.T) {
 	builder := &PacketBuilder{}
 	expectedLLAddress := []byte{0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
-	llAddress := builder.ExtractLLAddressOrID([]byte{0x0, 0x1, 0x0, 0x1, 0x1, 0x2, 0x3, 0x4, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	llAddress := builder.extractLLAddressOrID([]byte{0x0, 0x1, 0x0, 0x1, 0x1, 0x2, 0x3, 0x4, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
 	if string(expectedLLAddress) != string(llAddress) {
 		t.Fatalf("Expected ll address %x, got: %x", expectedLLAddress, llAddress)
 	}
@@ -494,7 +494,7 @@ func TestExtractLLAddressOrIdWithDUIDLLT(t *testing.T) {
 func TestExtractLLAddressOrIdWithDUIDEN(t *testing.T) {
 	builder := &PacketBuilder{}
 	expectedID := []byte{0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
-	id := builder.ExtractLLAddressOrID([]byte{0x0, 0x2, 0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	id := builder.extractLLAddressOrID([]byte{0x0, 0x2, 0x0, 0x1, 0x2, 0x3, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
 	if string(expectedID) != string(id) {
 		t.Fatalf("Expected id %x, got: %x", expectedID, id)
 	}
@@ -503,7 +503,7 @@ func TestExtractLLAddressOrIdWithDUIDEN(t *testing.T) {
 func TestExtractLLAddressOrIdWithDUIDLL(t *testing.T) {
 	builder := &PacketBuilder{}
 	expectedLLAddress := []byte{0xac, 0xbc, 0x32, 0xae, 0x86, 0x37}
-	llAddress := builder.ExtractLLAddressOrID([]byte{0x0, 0x3, 0x0, 0x1, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
+	llAddress := builder.extractLLAddressOrID([]byte{0x0, 0x3, 0x0, 0x1, 0xac, 0xbc, 0x32, 0xae, 0x86, 0x37})
 	if string(expectedLLAddress) != string(llAddress) {
 		t.Fatalf("Expected ll address %x, got: %x", expectedLLAddress, llAddress)
 	}

@@ -95,7 +95,7 @@ func TestReserveAddressKeepsTrackOfAssociationExpiration(t *testing.T) {
 	pool.timeNow = func() time.Time { return expectedTime }
 	pool.ReserveAddresses(expectedClientID, [][]byte{expectedIAID})
 
-	expiration := pool.identityAssociationExpirations.Peek().(*AssociationExpiration)
+	expiration := pool.identityAssociationExpirations.Peek().(*associationExpiration)
 	if expiration == nil {
 		t.Fatal("Expected an identity association expiration, but got nil")
 	}
