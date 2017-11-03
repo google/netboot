@@ -36,7 +36,7 @@ func (s *ServerV6) serveDHCP(conn *dhcp6.Conn) error {
 
 		marshalledResponse, err := response.Marshal()
 		if err != nil {
-			s.log("dhcpv6", fmt.Sprintf("Error marshalling response: %s", response.Type, response.TransactionID, err))
+			s.log("dhcpv6", fmt.Sprintf("Error marshalling response (%d) (%d): %s", response.Type, response.TransactionID, err))
 			continue
 		}
 
