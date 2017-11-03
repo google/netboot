@@ -72,6 +72,7 @@ func MakeOption(id uint16, value []byte) *Option {
 // Options contains all options of a DHCPv6 packet
 type Options map[uint16][]*Option
 
+// MakeOptions unmarshals individual Options and returns them in a new Options data structure
 func MakeOptions(bs []byte) (Options, error) {
 	ret := make(Options)
 	for len(bs) > 0 {
@@ -88,8 +89,8 @@ func MakeOptions(bs []byte) (Options, error) {
 // UnmarshalOption de-serializes an Option
 func UnmarshalOption(bs []byte) (*Option, error) {
 	optionLength := uint16(binary.BigEndian.Uint16(bs[2:4]))
-	optionId := uint16(binary.BigEndian.Uint16(bs[0:2]))
-	switch optionId {
+	optionID := uint16(binary.BigEndian.Uint16(bs[0:2]))
+	switch optionID {
 	// parse client_id
 	// parse server_id
 	//parse ipaddr
@@ -99,36 +100,36 @@ func UnmarshalOption(bs []byte) (*Option, error) {
 		}
 	default:
 		if len(bs[4:]) < int(optionLength) {
-			fmt.Printf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
-			return nil, fmt.Errorf("option %d claims to have %d bytes of payload, but only has %d bytes", optionId, optionLength, len(bs[4:]))
+			fmt.Printf("option %d claims to have %d bytes of payload, but only has %d bytes", optionID, optionLength, len(bs[4:]))
+			return nil, fmt.Errorf("option %d claims to have %d bytes of payload, but only has %d bytes", optionID, optionLength, len(bs[4:]))
 		}
 	}
-	return &Option{ ID: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]}, nil
+	return &Option{ ID: optionID, Length: optionLength, Value: bs[4 : 4+optionLength]}, nil
 }
 
 // HumanReadable presents DHCPv6 options in a human-readable form
 func (o Options) HumanReadable() []string {
-	to_ret := make([]string, 0, len(o))
+	ret := make([]string, 0, len(o))
 	for _, multipleOptions := range(o) {
 		for _, option := range(multipleOptions) {
 			switch option.ID {
 			case 3:
-				to_ret = append(to_ret, o.humanReadableIaNa(*option)...)
+				ret = append(ret, o.humanReadableIaNa(*option)...)
 			default:
-				to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", option.ID, option.Length, option.Value, option.Value))
+				ret = append(ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", option.ID, option.Length, option.Value, option.Value))
 			}
 		}
 	}
-	return to_ret
+	return ret
 }
 
 func (o Options) humanReadableIaNa(opt Option) []string {
-	to_ret := make([]string, 0)
-	to_ret = append(to_ret, fmt.Sprintf("Option: OptIaNa | len %d | iaid %x | t1 %d | t2 %d\n",
+	ret := make([]string, 0)
+	ret = append(ret, fmt.Sprintf("Option: OptIaNa | len %d | iaid %x | t1 %d | t2 %d\n",
 		opt.Length, opt.Value[0:4], binary.BigEndian.Uint32(opt.Value[4:8]), binary.BigEndian.Uint32(opt.Value[8:12])))
 
 	if opt.Length <= 12 {
-		return to_ret // no options
+		return ret // no options
 	}
 
 	iaOptions := opt.Value[12:]
@@ -141,17 +142,17 @@ func (o Options) humanReadableIaNa(opt Option) []string {
 		case OptIaAddr:
 			ip := make(net.IP, 16)
 			copy(ip, iaOptions[4:20])
-			to_ret = append(to_ret, fmt.Sprintf("\tOption: IA_ADDR | len %d | ip %s | preferred %d | valid %d | %v \n",
+			ret = append(ret, fmt.Sprintf("\tOption: IA_ADDR | len %d | ip %s | preferred %d | valid %d | %v \n",
 				l, ip, binary.BigEndian.Uint32(iaOptions[20:24]), binary.BigEndian.Uint32(iaOptions[24:28]), iaOptions[28:4+l]))
 		default:
-			to_ret = append(to_ret, fmt.Sprintf("\tOption: id %d | len %d | %s\n",
+			ret = append(ret, fmt.Sprintf("\tOption: id %d | len %d | %s\n",
 				id, l, iaOptions[4:4+l]))
 		}
 
 		iaOptions = iaOptions[4+l:]
 	}
 
-	return to_ret
+	return ret
 }
 
 // AddOption adds an option to Options

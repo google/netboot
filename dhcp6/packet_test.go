@@ -11,7 +11,7 @@ func TestShouldDiscardSolicitWithoutBootfileUrlOption(t *testing.T) {
 	options.AddOption(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
 	solicit := &Packet{Type: MsgSolicit, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
-	if err := ShouldDiscardSolicit(solicit); err == nil {
+	if err := shouldDiscardSolicit(solicit); err == nil {
 		t.Fatalf("Should discard solicit packet without bootfile url option, but didn't")
 	}
 }
@@ -21,7 +21,7 @@ func TestShouldDiscardSolicitWithoutClientIdOption(t *testing.T) {
 	options.AddOption(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
 	solicit := &Packet{Type: MsgSolicit, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
-	if err := ShouldDiscardSolicit(solicit); err == nil {
+	if err := shouldDiscardSolicit(solicit); err == nil {
 		t.Fatalf("Should discard solicit packet without client id option, but didn't")
 	}
 }
@@ -35,7 +35,7 @@ func TestShouldDiscardSolicitWithServerIdOption(t *testing.T) {
 	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	solicit := &Packet{Type: MsgSolicit, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
-	if err := ShouldDiscardSolicit(solicit); err == nil {
+	if err := shouldDiscardSolicit(solicit); err == nil {
 		t.Fatalf("Should discard solicit packet with server id option, but didn't")
 	}
 }
@@ -48,7 +48,7 @@ func TestShouldDiscardRequestWithoutBootfileUrlOption(t *testing.T) {
 	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
-	if err := ShouldDiscardRequest(request, serverID); err == nil {
+	if err := shouldDiscardRequest(request, serverID); err == nil {
 		t.Fatalf("Should discard request packet without bootfile url option, but didn't")
 	}
 }
@@ -60,7 +60,7 @@ func TestShouldDiscardRequestWithoutClientIdOption(t *testing.T) {
 	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
-	if err := ShouldDiscardRequest(request, serverID); err == nil {
+	if err := shouldDiscardRequest(request, serverID); err == nil {
 		t.Fatalf("Should discard request packet without client id option, but didn't")
 	}
 }
@@ -72,7 +72,7 @@ func TestShouldDiscardRequestWithoutServerIdOption(t *testing.T) {
 	options.AddOption(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
-	if err := ShouldDiscardRequest(request, []byte("serverid")); err == nil {
+	if err := shouldDiscardRequest(request, []byte("serverid")); err == nil {
 		t.Fatalf("Should discard request packet with server id option, but didn't")
 	}
 }
@@ -86,7 +86,7 @@ func TestShouldDiscardRequestWithWrongServerId(t *testing.T) {
 	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
-	if err := ShouldDiscardRequest(request, []byte("wrongid")); err == nil {
+	if err := shouldDiscardRequest(request, []byte("wrongid")); err == nil {
 		t.Fatalf("Should discard request packet with wrong server id option, but didn't")
 	}
 }

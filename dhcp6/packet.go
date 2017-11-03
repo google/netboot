@@ -5,8 +5,10 @@ import (
 	"bytes"
 )
 
+// MessageType contains ID identifying DHCP message type. See RFC 3315
 type MessageType uint8
 
+// Constants for each of the dhcp message types defined in RFC 3315
 const (
 	MsgSolicit MessageType = iota + 1
 	MsgAdvertise
@@ -23,12 +25,14 @@ const (
 	MsgRelayRepl
 )
 
+// Packet represents a DHCPv6 packet
 type Packet struct {
 	Type          MessageType
 	TransactionID [3]byte
 	Options       Options
 }
 
+// MakePacket creates a Packet out of its serialized representation
 func MakePacket(bs []byte, packetLength int) (*Packet, error) {
 	options, err := MakeOptions(bs[4:packetLength])
 	if err != nil {
@@ -39,6 +43,7 @@ func MakePacket(bs []byte, packetLength int) (*Packet, error) {
 	return ret, nil
 }
 
+// Marshal serializes the Packet
 func (p *Packet) Marshal() ([]byte, error) {
 	marshalledOptions, err := p.Options.Marshal()
 	if err != nil {
@@ -53,14 +58,15 @@ func (p *Packet) Marshal() ([]byte, error) {
 	return ret, nil
 }
 
+// ShouldDiscard returns true if the Packet fails validation
 func (p *Packet) ShouldDiscard(serverDuid []byte) error {
 	switch p.Type {
 	case MsgSolicit:
-		return ShouldDiscardSolicit(p)
+		return shouldDiscardSolicit(p)
 	case MsgRequest:
-		return ShouldDiscardRequest(p, serverDuid)
+		return shouldDiscardRequest(p, serverDuid)
 	case MsgInformationRequest:
-		return ShouldDiscardInformationRequest(p, serverDuid)
+		return shouldDiscardInformationRequest(p, serverDuid)
 	case MsgRelease:
 		return nil // FIX ME!
 	default:
@@ -68,7 +74,7 @@ func (p *Packet) ShouldDiscard(serverDuid []byte) error {
 	}
 }
 
-func ShouldDiscardSolicit(p *Packet) error {
+func shouldDiscardSolicit(p *Packet) error {
 	options := p.Options
 	if !options.HasBootFileURLOption() {
 		return fmt.Errorf("'Solicit' packet doesn't have file url option")
@@ -82,7 +88,7 @@ func ShouldDiscardSolicit(p *Packet) error {
 	return nil
 }
 
-func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
+func shouldDiscardRequest(p *Packet, serverDuid []byte) error {
 	options := p.Options
 	if !options.HasBootFileURLOption() {
 		return fmt.Errorf("'Request' packet doesn't have file url option")
@@ -99,7 +105,7 @@ func ShouldDiscardRequest(p *Packet, serverDuid []byte) error {
 	return nil
 }
 
-func ShouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
+func shouldDiscardInformationRequest(p *Packet, serverDuid []byte) error {
 	options := p.Options
 	if !options.HasBootFileURLOption() {
 		return fmt.Errorf("'Information-request' packet doesn't have boot file url option")
