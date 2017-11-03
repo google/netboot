@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// Conn is dhcpv6-specific socket
 type Conn struct {
 	conn *ipv6.PacketConn
 	group net.IP
@@ -14,6 +15,7 @@ type Conn struct {
 	listenPort string
 }
 
+// NewConn creates a new Conn bound to specified address and port
 func NewConn(addr, port string) (*Conn, error) {
 	ifi, err := InterfaceByAddress(addr)
 	if err != nil {
@@ -45,10 +47,12 @@ func NewConn(addr, port string) (*Conn, error) {
 	}, nil
 }
 
+// Close closes Conn
 func (c *Conn) Close() error {
 	return c.conn.Close()
 }
 
+// InterfaceByAddress finds the interface bound to an ip address, or returns an error if none were found
 func InterfaceByAddress(ifAddr string) (*net.Interface, error) {
 	allIfis, err := net.Interfaces()
 	if err != nil {
@@ -80,6 +84,7 @@ func addrToIP(a net.Addr) net.IP {
 	return ip
 }
 
+// RecvDHCP reads next available dhcp packet from Conn
 func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 	b := make([]byte, 1500)
 	for {
@@ -102,6 +107,7 @@ func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 	}
 }
 
+// SendDHCP sends a dhcp packet to the specified ip address using Conn
 func (c *Conn) SendDHCP(dst net.IP, p []byte) error {
 	dstAddr, err := net.ResolveUDPAddr("udp6", fmt.Sprintf("[%s]:%s", dst.String() + "%en0", "546"))
 	if err != nil {
@@ -114,6 +120,7 @@ func (c *Conn) SendDHCP(dst net.IP, p []byte) error {
 	return nil
 }
 
+// SourceHardwareAddress returns hardware address of the interface used by Conn
 func (c *Conn) SourceHardwareAddress() net.HardwareAddr {
 	return c.ifi.HardwareAddr
 }

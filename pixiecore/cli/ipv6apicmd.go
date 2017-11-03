@@ -59,7 +59,7 @@ var ipv6ApiCmd = &cobra.Command{
 				dnsServerAddresses = append(dnsServerAddresses, net.ParseIP(dnsServerAddress))
 			}
 		}
-		s.BootConfig = dhcp6.MakeApiBootConfiguration(apiURL, apiTimeout, preference,
+		s.BootConfig = dhcp6.MakeAPIBootConfiguration(apiURL, apiTimeout, preference,
 			cmd.Flags().Changed("preference"), dnsServerAddresses)
 
 		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")

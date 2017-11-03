@@ -7,43 +7,69 @@ import (
 	"net"
 )
 
+// DHCPv6 option IDs
 const (
-	OptClientID     uint16 = 1 // IPMask
-	OptServerID            = 2 // int32
-	OptIaNa                = 3 // IPs
-	OptIaTa                = 4 // IPs
-	OptIaAddr              = 5 // string
-	OptOro            = 6      // uint16
-	OptPreference     = 7      // string
-	OptElapsedTime    = 8      // IP
-	OptRelayMessage   = 9      // IP
-	OptAuth           = 11     // []byte
-	OptUnicast        = 12     // IP
-	OptStatusCode     = 13     // uint32
-	OptRapidCommit    = 14     // byte
-	OptUserClass      = 15     // IP
-	OptVendorClass    = 16     // []byte
-	OptVendorOpts     = 17     // string
-	OptInterfaceID    = 18     // uint16
-	OptReconfMsg      = 19     // uint32
-	OptReconfAccept   = 20     // uint32
-	OptRecursiveDNS   = 23     // []byte
+	// Client ID Option
+	OptClientID     uint16 = 1
+	// Server ID Option
+	OptServerID            = 2
+	// Identity Association for Non-temporary Addresses Option
+	OptIaNa                = 3
+	// Identity Association for Temporary Addresses Option
+	OptIaTa                = 4
+	// IA Address Option
+	OptIaAddr              = 5
+	// Option Request Option
+	OptOro            = 6
+	// Preference Option
+	OptPreference     = 7
+	// Elapsed Time Option
+	OptElapsedTime    = 8
+	// Relay Message Option
+	OptRelayMessage   = 9
+	// Authentication Option
+	OptAuth           = 11
+	// Server Unicast Option
+	OptUnicast        = 12
+	// Status Code Option
+	OptStatusCode     = 13
+	// Rapid Commit Option
+	OptRapidCommit    = 14
+	// User Class Option
+	OptUserClass      = 15
+	// Vendor Class Option
+	OptVendorClass    = 16
+	// Vendor-specific Information Option
+	OptVendorOpts     = 17
+	// Interface-Id Option
+	OptInterfaceID    = 18
+	// Reconfigure Message Option
+	OptReconfMsg      = 19
+	// Reconfigure Accept Option
+	OptReconfAccept   = 20
+	// Recursive DNS name servers Option
+	OptRecursiveDNS   = 23
+	// Boot File URL Option
 	OptBootfileURL    = 59
-	OptBootfileParam  = 60 //[][]byte
-	OptClientArchType = 61 //[][]byte, sent by the Client
-	// 24? Domain search list
+	// Boot File Parameters Option
+	OptBootfileParam  = 60
+	// Client Architecture Type Option
+	OptClientArchType = 61
 )
 
+// Option represents a DHCPv6 Option
 type Option struct {
 	ID     uint16
 	Length uint16
 	Value  []byte
 }
 
+// MakeOption creates an Option with given ID and value
 func MakeOption(id uint16, value []byte) *Option {
 	return &Option{ ID: id, Length: uint16(len(value)), Value: value}
 }
 
+// Options contains all options of a DHCPv6 packet
 type Options map[uint16][]*Option
 
 func MakeOptions(bs []byte) (Options, error) {
@@ -59,6 +85,7 @@ func MakeOptions(bs []byte) (Options, error) {
 	return ret, nil
 }
 
+// UnmarshalOption de-serializes an Option
 func UnmarshalOption(bs []byte) (*Option, error) {
 	optionLength := uint16(binary.BigEndian.Uint16(bs[2:4]))
 	optionId := uint16(binary.BigEndian.Uint16(bs[0:2]))
@@ -79,13 +106,14 @@ func UnmarshalOption(bs []byte) (*Option, error) {
 	return &Option{ ID: optionId, Length: optionLength, Value: bs[4 : 4+optionLength]}, nil
 }
 
+// HumanReadable presents DHCPv6 options in a human-readable form
 func (o Options) HumanReadable() []string {
 	to_ret := make([]string, 0, len(o))
 	for _, multipleOptions := range(o) {
 		for _, option := range(multipleOptions) {
 			switch option.ID {
 			case 3:
-				to_ret = append(to_ret, o.HumanReadableIaNa(*option)...)
+				to_ret = append(to_ret, o.humanReadableIaNa(*option)...)
 			default:
 				to_ret = append(to_ret, fmt.Sprintf("Option: %d | %d | %d | %s\n", option.ID, option.Length, option.Value, option.Value))
 			}
@@ -94,7 +122,7 @@ func (o Options) HumanReadable() []string {
 	return to_ret
 }
 
-func (o Options) HumanReadableIaNa(opt Option) []string {
+func (o Options) humanReadableIaNa(opt Option) []string {
 	to_ret := make([]string, 0)
 	to_ret = append(to_ret, fmt.Sprintf("Option: OptIaNa | len %d | iaid %x | t1 %d | t2 %d\n",
 		opt.Length, opt.Value[0:4], binary.BigEndian.Uint32(opt.Value[4:8]), binary.BigEndian.Uint32(opt.Value[8:12])))
@@ -126,6 +154,7 @@ func (o Options) HumanReadableIaNa(opt Option) []string {
 	return to_ret
 }
 
+// AddOption adds an option to Options
 func (o Options) AddOption(option *Option) {
 	_, present := o[option.ID]; if !present {
 		o[option.ID] = make([]*Option, 0)
@@ -133,6 +162,9 @@ func (o Options) AddOption(option *Option) {
 	o[option.ID] = append(o[option.ID], option)
 }
 
+// MakeIaNaOption creates a Identity Association for Non-temporary Addresses Option
+// with specified interface ID, t1 and t2 times, and an interface-specific option
+// (an IA Address Option or a Status Option)
 func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaOption *Option) *Option {
 	serializedIaOption, _ := iaOption.Marshal()
 	value := make([]byte, 12 + len(serializedIaOption))
@@ -143,6 +175,8 @@ func MakeIaNaOption(iaid []byte, t1, t2 uint32, iaOption *Option) *Option {
 	return MakeOption(OptIaNa, value)
 }
 
+// MakeIaAddrOption creates an IA Address Option using IP address,
+// preferred and valid lifetimes
 func MakeIaAddrOption(addr net.IP, preferredLifetime, validLifetime uint32) *Option {
 	value := make([]byte, 24)
 	copy(value[0:], addr)
@@ -151,6 +185,7 @@ func MakeIaAddrOption(addr net.IP, preferredLifetime, validLifetime uint32) *Opt
 	return MakeOption(OptIaAddr, value)
 }
 
+// MakeStatusOption creates a Status Option with given status code and message
 func MakeStatusOption(statusCode uint16, message string) *Option {
 	value := make([]byte, 2 + len(message))
 	binary.BigEndian.PutUint16(value[0:], statusCode)
@@ -158,6 +193,7 @@ func MakeStatusOption(statusCode uint16, message string) *Option {
 	return MakeOption(OptStatusCode, value)
 }
 
+// MakeDNSServersOption creates a Recursive DNS servers Option with the specified list of IP addresses
 func MakeDNSServersOption(addresses []net.IP) *Option {
 	value := make([]byte, 16*len(addresses))
 	for i, dnsAddress := range addresses {
@@ -166,6 +202,7 @@ func MakeDNSServersOption(addresses []net.IP) *Option {
 	return MakeOption(OptRecursiveDNS, value)
 }
 
+// Marshal serializes Options
 func (o Options) Marshal() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte, 0, 1446))
 	for _, multipleOptions := range(o) {
@@ -182,6 +219,7 @@ func (o Options) Marshal() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// Marshal serializes the Option
 func (o *Option) Marshal() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte, 0, o.Length + 2))
 
@@ -200,6 +238,7 @@ func (o *Option) Marshal() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// UnmarshalOptionRequestOption de-serializes Option Request Option
 func (o Options) UnmarshalOptionRequestOption() map[uint16]bool {
 	ret := make(map[uint16]bool)
 
@@ -214,37 +253,44 @@ func (o Options) UnmarshalOptionRequestOption() map[uint16]bool {
 	return ret
 }
 
+// HasBootFileURLOption returns true if Options contains Boot File URL Option
 func (o Options) HasBootFileURLOption() bool {
 	requestedOptions := o.UnmarshalOptionRequestOption()
 	_, present := requestedOptions[OptBootfileURL]
 	return present
 }
 
+// HasClientID returns true if Options contains Client ID Option
 func (o Options) HasClientID() bool {
 	_, present := o[OptClientID]
 	return present
 }
 
+// HasServerID returns true if Options contains Server ID Option
 func (o Options) HasServerID() bool {
 	_, present := o[OptServerID]
 	return present
 }
 
+// HasIaNa returns true oif Options contains Identity Association for Non-Temporary Addresses Option
 func (o Options) HasIaNa() bool {
 	_, present := o[OptIaNa]
 	return present
 }
 
+// HasIaTa returns true if Options contains Identity Association for Temporary Addresses Option
 func (o Options) HasIaTa() bool {
 	_, present := o[OptIaTa]
 	return present
 }
 
+// HasClientArchType returns true if Options contains Client Architecture Type Option
 func (o Options) HasClientArchType() bool {
 	_, present := o[OptClientArchType]
 	return present
 }
 
+// ClientID returns the value in the Client ID Option or nil if the option doesn't exist
 func (o Options) ClientID() []byte {
 	opt, exists := o[OptClientID]
 	if exists {
@@ -253,6 +299,7 @@ func (o Options) ClientID() []byte {
 	return nil
 }
 
+// ServerID returns the value in the Server ID Option or nil if the option doesn't exist
 func (o Options) ServerID() []byte {
 	opt, exists := o[OptServerID]
 	if exists {
@@ -261,6 +308,8 @@ func (o Options) ServerID() []byte {
 	return nil
 }
 
+// IaNaIDs returns a list of interface IDs in all Identity Association for Non-Temporary Addresses Options,
+// or an empty list if none exist
 func (o Options) IaNaIDs() [][]byte {
 	options, exists := o[OptIaNa]
 	ret := make([][]byte, 0)
@@ -273,6 +322,7 @@ func (o Options) IaNaIDs() [][]byte {
 	return ret
 }
 
+// ClientArchType returns the value in the Client Architecture Type Option, or 0 if the option doesn't exist
 func (o Options) ClientArchType() uint16 {
 	opt, exists := o[OptClientArchType]
 	if exists {
@@ -281,6 +331,7 @@ func (o Options) ClientArchType() uint16 {
 	return 0
 }
 
+// BootFileURL returns the value in the Boot File URL Option, or nil if the option doesn't exist
 func (o Options) BootFileURL() []byte {
 	opt, exists := o[OptBootfileURL]
 	if exists {

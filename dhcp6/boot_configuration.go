@@ -66,8 +66,8 @@ type APIBootConfiguration struct {
 	UsePreference bool
 }
 
-// MakeApiBootConfiguration creates a new APIBootConfiguration initialized with provided values
-func MakeApiBootConfiguration(url string, timeout time.Duration, preference uint8, usePreference bool,
+// MakeAPIBootConfiguration creates a new APIBootConfiguration initialized with provided values
+func MakeAPIBootConfiguration(url string, timeout time.Duration, preference uint8, usePreference bool,
 		dnsServerAddresses []net.IP) *APIBootConfiguration {
 	if !strings.HasSuffix(url, "/") {
 		url += "/"
