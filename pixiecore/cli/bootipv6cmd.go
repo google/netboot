@@ -62,7 +62,7 @@ var bootIPv6Cmd = &cobra.Command{
 				dnsServerAddresses = append(dnsServerAddresses, net.ParseIP(dnsServerAddress))
 			}
 		}
-		s.BootConfig = dhcp6.MakeStaticBootConfiguration(httpBootURL, ipxeURL, preference,
+		s.BootConfig = pixiecorev6.MakeStaticBootConfiguration(httpBootURL, ipxeURL, preference,
 			cmd.Flags().Changed("preference"), dnsServerAddresses)
 
 		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")
