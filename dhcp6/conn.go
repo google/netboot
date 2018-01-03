@@ -109,12 +109,11 @@ func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 
 // SendDHCP sends a dhcp packet to the specified ip address using Conn
 func (c *Conn) SendDHCP(dst net.IP, p []byte) error {
-	dstAddr, err := net.ResolveUDPAddr("udp6", fmt.Sprintf("[%s]:%s", dst.String() + "%en0", "546"))
-	if err != nil {
-		return fmt.Errorf("Error resolving ipv6 address %s: %s", dst.String(), err)
+	dstAddr := &net.UDPAddr{
+		IP: dst,
+		Port: 546,
 	}
-	_, err = c.conn.WriteTo(p, nil, dstAddr)
-	if err != nil {
+	_, err := c.conn.WriteTo(p, nil, dstAddr); if err != nil {
 		return fmt.Errorf("Error sending a reply to %s: %s", dst.String(), err)
 	}
 	return nil
