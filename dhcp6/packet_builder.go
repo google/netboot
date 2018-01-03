@@ -58,19 +58,19 @@ func (b *PacketBuilder) BuildResponse(in *Packet, serverDUID []byte, configurati
 func (b *PacketBuilder) makeMsgAdvertise(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
 	associations []*IdentityAssociation, bootFileURL, preference []byte, dnsServers []net.IP) *Packet {
 	retOptions := make(Options)
-	retOptions.AddOption(MakeOption(OptClientID, clientID))
+	retOptions.Add(MakeOption(OptClientID, clientID))
 	for _, association := range(associations) {
-		retOptions.AddOption(MakeIaNaOption(association.InterfaceID, b.calculateT1(), b.calculateT2(),
+		retOptions.Add(MakeIaNaOption(association.InterfaceID, b.calculateT1(), b.calculateT2(),
 			MakeIaAddrOption(association.IPAddress, b.PreferredLifetime, b.ValidLifetime)))
 	}
-	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
+	retOptions.Add(MakeOption(OptServerID, serverDUID))
 	if 0x10 ==  clientArchType { // HTTPClient
-		retOptions.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		retOptions.Add(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
-	retOptions.AddOption(MakeOption(OptBootfileURL, bootFileURL))
+	retOptions.Add(MakeOption(OptBootfileURL, bootFileURL))
 	if preference != nil {
-		retOptions.AddOption(MakeOption(OptPreference, preference))}
-	if len(dnsServers) > 0 { retOptions.AddOption(MakeDNSServersOption(dnsServers)) }
+		retOptions.Add(MakeOption(OptPreference, preference))}
+	if len(dnsServers) > 0 { retOptions.Add(MakeDNSServersOption(dnsServers)) }
 
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionID, Options: retOptions}
 }
@@ -78,21 +78,21 @@ func (b *PacketBuilder) makeMsgAdvertise(transactionID [3]byte, serverDUID, clie
 func (b *PacketBuilder) makeMsgReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
 	associations []*IdentityAssociation, iasWithoutAddresses [][]byte, bootFileURL []byte, dnsServers []net.IP, err error) *Packet {
 	retOptions := make(Options)
-	retOptions.AddOption(MakeOption(OptClientID, clientID))
+	retOptions.Add(MakeOption(OptClientID, clientID))
 	for _, association := range(associations) {
-		retOptions.AddOption(MakeIaNaOption(association.InterfaceID, b.calculateT1(), b.calculateT2(),
+		retOptions.Add(MakeIaNaOption(association.InterfaceID, b.calculateT1(), b.calculateT2(),
 			MakeIaAddrOption(association.IPAddress, b.PreferredLifetime, b.ValidLifetime)))
 	}
 	for _, ia := range(iasWithoutAddresses) {
-		retOptions.AddOption(MakeIaNaOption(ia, b.calculateT1(), b.calculateT2(),
+		retOptions.Add(MakeIaNaOption(ia, b.calculateT1(), b.calculateT2(),
 			MakeStatusOption(2, err.Error())))
 	}
-	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
+	retOptions.Add(MakeOption(OptServerID, serverDUID))
 	if 0x10 ==  clientArchType { // HTTPClient
-		retOptions.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		retOptions.Add(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
-	retOptions.AddOption(MakeOption(OptBootfileURL, bootFileURL))
-	if len(dnsServers) > 0 { retOptions.AddOption(MakeDNSServersOption(dnsServers)) }
+	retOptions.Add(MakeOption(OptBootfileURL, bootFileURL))
+	if len(dnsServers) > 0 { retOptions.Add(MakeDNSServersOption(dnsServers)) }
 
 	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
@@ -100,13 +100,13 @@ func (b *PacketBuilder) makeMsgReply(transactionID [3]byte, serverDUID, clientID
 func (b *PacketBuilder) makeMsgInformationRequestReply(transactionID [3]byte, serverDUID, clientID []byte, clientArchType uint16,
 	bootFileURL []byte, dnsServers []net.IP) *Packet {
 	retOptions := make(Options)
-	retOptions.AddOption(MakeOption(OptClientID, clientID))
-	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
+	retOptions.Add(MakeOption(OptClientID, clientID))
+	retOptions.Add(MakeOption(OptServerID, serverDUID))
 	if 0x10 ==  clientArchType { // HTTPClient
-		retOptions.AddOption(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
+		retOptions.Add(MakeOption(OptVendorClass, []byte {0, 0, 0, 0, 0, 10, 72, 84, 84, 80, 67, 108, 105, 101, 110, 116})) // HTTPClient
 	}
-	retOptions.AddOption(MakeOption(OptBootfileURL, bootFileURL))
-	if len(dnsServers) > 0 { retOptions.AddOption(MakeDNSServersOption(dnsServers)) }
+	retOptions.Add(MakeOption(OptBootfileURL, bootFileURL))
+	if len(dnsServers) > 0 { retOptions.Add(MakeDNSServersOption(dnsServers)) }
 
 	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
@@ -114,20 +114,20 @@ func (b *PacketBuilder) makeMsgInformationRequestReply(transactionID [3]byte, se
 func (b *PacketBuilder) makeMsgReleaseReply(transactionID [3]byte, serverDUID, clientID []byte) *Packet {
 	retOptions := make(Options)
 
-	retOptions.AddOption(MakeOption(OptClientID, clientID))
-	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
+	retOptions.Add(MakeOption(OptClientID, clientID))
+	retOptions.Add(MakeOption(OptServerID, serverDUID))
 	v := make([]byte, 19, 19)
 	copy(v[2:], []byte("Release received."))
-	retOptions.AddOption(MakeOption(OptStatusCode, v))
+	retOptions.Add(MakeOption(OptStatusCode, v))
 
 	return &Packet{Type: MsgReply, TransactionID: transactionID, Options: retOptions}
 }
 
 func (b *PacketBuilder) makeMsgAdvertiseWithNoAddrsAvailable(transactionID [3]byte, serverDUID, clientID []byte, err error) *Packet {
 	retOptions := make(Options)
-	retOptions.AddOption(MakeOption(OptClientID, clientID))
-	retOptions.AddOption(MakeOption(OptServerID, serverDUID))
-	retOptions.AddOption(MakeStatusOption(2, err.Error())) // NoAddrAvailable
+	retOptions.Add(MakeOption(OptClientID, clientID))
+	retOptions.Add(MakeOption(OptServerID, serverDUID))
+	retOptions.Add(MakeStatusOption(2, err.Error())) // NoAddrAvailable
 	return &Packet{Type: MsgAdvertise, TransactionID: transactionID, Options: retOptions}
 }
 

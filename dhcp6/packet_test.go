@@ -8,7 +8,7 @@ import (
 func TestShouldDiscardSolicitWithoutBootfileUrlOption(t *testing.T) {
 	clientID := []byte("clientid")
 	options := make(Options)
-	options.AddOption(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
+	options.Add(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
 	solicit := &Packet{Type: MsgSolicit, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
 	if err := shouldDiscardSolicit(solicit); err == nil {
@@ -18,7 +18,7 @@ func TestShouldDiscardSolicitWithoutBootfileUrlOption(t *testing.T) {
 
 func TestShouldDiscardSolicitWithoutClientIdOption(t *testing.T) {
 	options := make(Options)
-	options.AddOption(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
+	options.Add(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
 	solicit := &Packet{Type: MsgSolicit, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
 	if err := shouldDiscardSolicit(solicit); err == nil {
@@ -30,9 +30,9 @@ func TestShouldDiscardSolicitWithServerIdOption(t *testing.T) {
 	serverID := []byte("serverid")
 	clientID := []byte("clientid")
 	options := make(Options)
-	options.AddOption(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
-	options.AddOption(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
-	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
+	options.Add(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
+	options.Add(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
+	options.Add(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	solicit := &Packet{Type: MsgSolicit, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
 	if err := shouldDiscardSolicit(solicit); err == nil {
@@ -44,8 +44,8 @@ func TestShouldDiscardRequestWithoutBootfileUrlOption(t *testing.T) {
 	serverID := []byte("serverid")
 	clientID := []byte("clientid")
 	options := make(Options)
-	options.AddOption(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
-	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
+	options.Add(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
+	options.Add(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
 	if err := shouldDiscardRequest(request, serverID); err == nil {
@@ -56,8 +56,8 @@ func TestShouldDiscardRequestWithoutBootfileUrlOption(t *testing.T) {
 func TestShouldDiscardRequestWithoutClientIdOption(t *testing.T) {
 	serverID := []byte("serverid")
 	options := make(Options)
-	options.AddOption(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
-	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
+	options.Add(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
+	options.Add(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
 	if err := shouldDiscardRequest(request, serverID); err == nil {
@@ -68,8 +68,8 @@ func TestShouldDiscardRequestWithoutClientIdOption(t *testing.T) {
 func TestShouldDiscardRequestWithoutServerIdOption(t *testing.T) {
 	clientID := []byte("clientid")
 	options := make(Options)
-	options.AddOption(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
-	options.AddOption(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
+	options.Add(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
+	options.Add(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
 	if err := shouldDiscardRequest(request, []byte("serverid")); err == nil {
@@ -81,9 +81,9 @@ func TestShouldDiscardRequestWithWrongServerId(t *testing.T) {
 	clientID := []byte("clientid")
 	serverID := []byte("serverid")
 	options := make(Options)
-	options.AddOption(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
-	options.AddOption(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
-	options.AddOption(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
+	options.Add(MakeOptionRequestOptions([]uint16{OptBootfileURL}))
+	options.Add(&Option{ID: OptClientID, Length: uint16(len(clientID)), Value: clientID})
+	options.Add(&Option{ID: OptServerID, Length: uint16(len(serverID)), Value: serverID})
 	request := &Packet{Type: MsgRequest, TransactionID: [3]byte{'1', '2', '3'}, Options: options}
 
 	if err := shouldDiscardRequest(request, []byte("wrongid")); err == nil {

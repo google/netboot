@@ -155,8 +155,8 @@ func (o Options) humanReadableIaNa(opt Option) []string {
 	return ret
 }
 
-// AddOption adds an option to Options
-func (o Options) AddOption(option *Option) {
+// Add adds an option to Options
+func (o Options) Add(option *Option) {
 	_, present := o[option.ID]; if !present {
 		o[option.ID] = make([]*Option, 0)
 	}
