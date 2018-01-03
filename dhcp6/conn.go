@@ -98,7 +98,7 @@ func (c *Conn) RecvDHCP() (*Packet, net.IP, error) {
 		if !rcm.Dst.IsMulticast() || !rcm.Dst.Equal(c.group) {
 			continue // unknown group, discard
 		}
-		pkt, err := MakePacket(b, n)
+		pkt, err := Unmarshal(b, n)
 		if err != nil {
 			return nil, nil, err
 		}

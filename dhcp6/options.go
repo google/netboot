@@ -72,8 +72,8 @@ func MakeOption(id uint16, value []byte) *Option {
 // Options contains all options of a DHCPv6 packet
 type Options map[uint16][]*Option
 
-// MakeOptions unmarshals individual Options and returns them in a new Options data structure
-func MakeOptions(bs []byte) (Options, error) {
+// UnmarshalOptions unmarshals individual Options and returns them in a new Options data structure
+func UnmarshalOptions(bs []byte) (Options, error) {
 	ret := make(Options)
 	for len(bs) > 0 {
 		o, err := UnmarshalOption(bs)

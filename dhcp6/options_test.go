@@ -98,7 +98,7 @@ func TestMakeStatusOption(t *testing.T) {
 
 func TestUnmarshalFailsIfOROLengthIsOdd(t *testing.T) {
 	in := []byte{0, 6, 0, 3, 0, 1, 1}
-	if _, err := MakeOptions(in); err == nil {
+	if _, err := UnmarshalOptions(in); err == nil {
 		t.Fatalf("Parsing options should fail: option request for options has odd length.")
 	}
 }

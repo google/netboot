@@ -32,9 +32,9 @@ type Packet struct {
 	Options       Options
 }
 
-// MakePacket creates a Packet out of its serialized representation
-func MakePacket(bs []byte, packetLength int) (*Packet, error) {
-	options, err := MakeOptions(bs[4:packetLength])
+// Unmarshal creates a Packet out of its serialized representation
+func Unmarshal(bs []byte, packetLength int) (*Packet, error) {
+	options, err := UnmarshalOptions(bs[4:packetLength])
 	if err != nil {
 		return nil, fmt.Errorf("packet has malformed options section: %s", err)
 	}
