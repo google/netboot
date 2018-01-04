@@ -3,12 +3,12 @@ package cli
 import (
 	"github.com/spf13/cobra"
 	"fmt"
-	"go.universe.tf/netboot/pixiecorev6"
 	"go.universe.tf/netboot/dhcp6"
 	"go.universe.tf/netboot/dhcp6/pool"
 	"time"
 	"net"
 	"strings"
+	"go.universe.tf/netboot/pixiecore"
 )
 
 // pixiecore ipv6api --listen-addr=2001:db8:f00f:cafe::4  --api-request-url=http://[2001:db8:f00f:cafe::4]:8888
@@ -30,7 +30,7 @@ var ipv6ApiCmd = &cobra.Command{
 			fatalf("Error reading flag: %s", err)
 		}
 
-		s := pixiecorev6.NewServerV6()
+		s := pixiecore.NewServerV6()
 		s.Log = logWithStdFmt
 		debug, err := cmd.Flags().GetBool("debug")
 		if err != nil {
@@ -60,7 +60,7 @@ var ipv6ApiCmd = &cobra.Command{
 				dnsServerAddresses = append(dnsServerAddresses, net.ParseIP(dnsServerAddress))
 			}
 		}
-		s.BootConfig = pixiecorev6.MakeAPIBootConfiguration(apiURL, apiTimeout, preference,
+		s.BootConfig = pixiecore.MakeAPIBootConfiguration(apiURL, apiTimeout, preference,
 			cmd.Flags().Changed("preference"), dnsServerAddresses)
 
 		addressPoolStart, err := cmd.Flags().GetString("address-pool-start")

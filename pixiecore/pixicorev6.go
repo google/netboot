@@ -1,4 +1,4 @@
-package pixiecorev6
+package pixiecore
 
 import (
 	"go.universe.tf/netboot/dhcp6"

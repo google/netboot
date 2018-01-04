@@ -1,4 +1,4 @@
-package pixiecorev6
+package pixiecore
 
 import (
 	"net/http"
