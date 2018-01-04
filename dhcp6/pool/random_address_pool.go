@@ -94,7 +94,7 @@ func (p *RandomAddressPool) ReserveAddresses(clientID []byte, interfaceIDs [][]b
 
 		for {
 			// we assume that ip addresses adhere to high 64 bits for net and subnet ids, low 64 bits are for host id rule
-			hostOffset := rand.Uint64() % p.poolSize
+			hostOffset := rng.Uint64() % p.poolSize
 			newIP := big.NewInt(0).Add(p.poolStartAddress, big.NewInt(0).SetUint64(hostOffset))
 			_, exists := p.usedIps[newIP.Uint64()];
 			if !exists {
