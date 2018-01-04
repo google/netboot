@@ -1,4 +1,4 @@
-package dhcp6
+package pool
 
 import (
 	"net"
@@ -8,11 +8,12 @@ import (
 	"hash/fnv"
 	"sync"
 	"fmt"
+	"go.universe.tf/netboot/dhcp6"
 )
 
 type associationExpiration struct {
 	expiresAt time.Time
-	ia *IdentityAssociation
+	ia *dhcp6.IdentityAssociation
 }
 
 type fifo struct {q []interface{}}
@@ -46,7 +47,7 @@ func (f *fifo) Peek() interface{} {
 type RandomAddressPool struct {
 	poolStartAddress               *big.Int
 	poolSize                       uint64
-	identityAssociations           map[uint64]*IdentityAssociation
+	identityAssociations           map[uint64]*dhcp6.IdentityAssociation
 	usedIps                        map[uint64]struct{}
 	identityAssociationExpirations fifo
 	validLifetime                  uint32 // in seconds
@@ -62,7 +63,7 @@ func NewRandomAddressPool(poolStartAddress net.IP, poolSize uint64, validLifetim
 	ret.poolStartAddress = big.NewInt(0)
 	ret.poolStartAddress.SetBytes(poolStartAddress)
 	ret.poolSize = poolSize
-	ret.identityAssociations = make(map[uint64]*IdentityAssociation)
+	ret.identityAssociations = make(map[uint64]*dhcp6.IdentityAssociation)
 	ret.usedIps = make(map[uint64]struct{})
 	ret.identityAssociationExpirations = newFifo()
 	ret.timeNow = func() time.Time { return time.Now() }
@@ -79,11 +80,11 @@ func NewRandomAddressPool(poolStartAddress net.IP, poolSize uint64, validLifetim
 }
 
 // ReserveAddresses creates new or retrieves active associations for interfaces in interfaceIDs list.
-func (p *RandomAddressPool) ReserveAddresses(clientID []byte, interfaceIDs [][]byte) ([]*IdentityAssociation, error) {
+func (p *RandomAddressPool) ReserveAddresses(clientID []byte, interfaceIDs [][]byte) ([]*dhcp6.IdentityAssociation, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	ret := make([]*IdentityAssociation, 0, len(interfaceIDs))
+	ret := make([]*dhcp6.IdentityAssociation, 0, len(interfaceIDs))
 	rng := rand.New(rand.NewSource(p.timeNow().UnixNano()))
 
 	for _, interfaceID := range (interfaceIDs) {
@@ -105,7 +106,7 @@ func (p *RandomAddressPool) ReserveAddresses(clientID []byte, interfaceIDs [][]b
 			_, exists := p.usedIps[newIP.Uint64()];
 			if !exists {
 				timeNow := p.timeNow()
-				association := &IdentityAssociation{ClientID: clientID,
+				association := &dhcp6.IdentityAssociation{ClientID: clientID,
 					InterfaceID: interfaceID,
 					IPAddress: newIP.Bytes(),
 					CreatedAt: timeNow}

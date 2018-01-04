@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.universe.tf/netboot/pixiecorev6"
 	"go.universe.tf/netboot/dhcp6"
+	"go.universe.tf/netboot/dhcp6/pool"
 	"time"
 	"net"
 	"strings"
@@ -74,7 +75,7 @@ var ipv6ApiCmd = &cobra.Command{
 		if err != nil {
 			fatalf("Error reading flag: %s", err)
 		}
-		s.AddressPool = dhcp6.NewRandomAddressPool(net.ParseIP(addressPoolStart), addressPoolSize, addressPoolValidLifetime)
+		s.AddressPool = pool.NewRandomAddressPool(net.ParseIP(addressPoolStart), addressPoolSize, addressPoolValidLifetime)
 		s.PacketBuilder = dhcp6.MakePacketBuilder(addressPoolValidLifetime - addressPoolValidLifetime*3/100, addressPoolValidLifetime)
 
 		fmt.Println(s.Serve())

@@ -1,4 +1,4 @@
-package dhcp6
+package pool
 
 import (
 	"testing"
