@@ -67,15 +67,6 @@ func NewRandomAddressPool(poolStartAddress net.IP, poolSize uint64, validLifetim
 	ret.usedIps = make(map[uint64]struct{})
 	ret.identityAssociationExpirations = newFifo()
 	ret.timeNow = func() time.Time { return time.Now() }
-
-	ticker := time.NewTicker(time.Second * 10).C
-	go func() {
-		for {
-			<- ticker
-			ret.ExpireIdentityAssociations()
-		}
-	}()
-
 	return ret
 }
 
@@ -83,6 +74,8 @@ func NewRandomAddressPool(poolStartAddress net.IP, poolSize uint64, validLifetim
 func (p *RandomAddressPool) ReserveAddresses(clientID []byte, interfaceIDs [][]byte) ([]*dhcp6.IdentityAssociation, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
+
+	p.expireIdentityAssociations()
 
 	ret := make([]*dhcp6.IdentityAssociation, 0, len(interfaceIDs))
 	rng := rand.New(rand.NewSource(p.timeNow().UnixNano()))
@@ -137,12 +130,9 @@ func  (p *RandomAddressPool) ReleaseAddresses(clientID []byte, interfaceIDs [][]
 	}
 }
 
-// ExpireIdentityAssociations releases IP addresses in identity associations that reached the end of valid lifetime
-// back into the address pool
-func (p *RandomAddressPool) ExpireIdentityAssociations() {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
+// expireIdentityAssociations releases IP addresses in identity associations that reached the end of valid lifetime
+// back into the address pool. Note it should be called from under the RandomAddressPool.lock.
+func (p *RandomAddressPool) expireIdentityAssociations() {
 	for {
 		if p.identityAssociationExpirations.Size() < 1 { break }
 		expiration := p.identityAssociationExpirations.Peek().(*associationExpiration)
