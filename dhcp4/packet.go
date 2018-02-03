@@ -67,7 +67,7 @@ func (mt MessageType) String() string {
 // Packet represents a DHCP packet.
 type Packet struct {
 	Type          MessageType
-	TransactionID string
+	TransactionID []byte // Always 4 bytes
 	Broadcast     bool
 	HardwareAddr  net.HardwareAddr // Only ethernet supported at the moment
 
@@ -175,7 +175,7 @@ func (p *Packet) Marshal() ([]byte, error) {
 	// Hops = 0
 	ret.WriteByte(0)
 	// Transaction ID
-	ret.WriteString(p.TransactionID)
+	ret.Write(p.TransactionID)
 	// Seconds elapsed
 	ret.Write([]byte{0, 0})
 	// Broadcast flag
@@ -267,7 +267,7 @@ func Unmarshal(bs []byte) (*Packet, error) {
 		return nil, fmt.Errorf("packet has unsupported hardware address type/length %d/%d", bs[1], bs[2])
 	}
 	ret.HardwareAddr = net.HardwareAddr(bs[28:34])
-	ret.TransactionID = string(bs[4:8])
+	ret.TransactionID = bs[4:8]
 	if binary.BigEndian.Uint16(bs[10:12])&0x8000 != 0 {
 		ret.Broadcast = true
 	}

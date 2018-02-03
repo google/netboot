@@ -36,7 +36,7 @@ func testConn(t *testing.T, impl conn, addr string) {
 
 	p := &Packet{
 		Type:          MsgDiscover,
-		TransactionID: "1234",
+		TransactionID: []byte("1234"),
 		Broadcast:     true,
 		HardwareAddr:  mac,
 	}
