@@ -22,12 +22,21 @@ set user-class pixiecore
 # Try to get a filename from ProxyDHCP, retrying a couple of times if
 # we fail.
 :loop
-dhcp && isset ${filename} || goto retry
+dhcp || goto nodhcp
+isset ${filename} || goto nobootconfig
 goto boot
+
+:nodhcp
+echo No DHCP response, retrying (attempt ${x}/${attempts})
+goto retry
+
+:nobootconfig
+echo No ProxyDHCP response, retrying (attempt ${x}/${attempts})
+goto retry
+
 :retry
 iseq ${x} ${attempts} && goto fail ||
 inc x
-echo No ProxyDHCP response, retrying (attempt ${x}/${attempts})
 goto loop
 
 # Got a filename from ProxyDHCP, that's the actual boot script,
