@@ -32,35 +32,35 @@ type Option byte
 // for the full authoritative list.
 const (
 	OptSubnetMask         Option = 1  // IPMask
-	OptTimeOffset                = 2  // int32
-	OptRouters                   = 3  // IPs
-	OptDNSServers                = 6  // IPs
-	OptHostname                  = 12 // string
-	OptBootFileSize              = 13 // uint16
-	OptDomainName                = 15 // string
-	OptBroadcastAddr             = 28 // IP
-	OptNTPServers                = 42 // IP
-	OptVendorSpecific            = 43 // []byte
-	OptRequestedIP               = 50 // IP
-	OptLeaseTime                 = 51 // uint32
-	OptOverload                  = 52 // byte
-	OptServerIdentifier          = 54 // IP
-	OptRequestedOptions          = 55 // []byte
-	OptMessage                   = 56 // string
-	OptMaximumMessageSize        = 57 // uint16
-	OptRenewalTime               = 58 // uint32
-	OptRebindingTime             = 59 // uint32
-	OptVendorIdentifier          = 60 // string
-	OptClientIdentifier          = 61 // string
-	OptFQDN                      = 81 // string
+	OptTimeOffset         Option = 2  // int32
+	OptRouters            Option = 3  // IPs
+	OptDNSServers         Option = 6  // IPs
+	OptHostname           Option = 12 // string
+	OptBootFileSize       Option = 13 // uint16
+	OptDomainName         Option = 15 // string
+	OptBroadcastAddr      Option = 28 // IP
+	OptNTPServers         Option = 42 // IP
+	OptVendorSpecific     Option = 43 // []byte
+	OptRequestedIP        Option = 50 // IP
+	OptLeaseTime          Option = 51 // uint32
+	OptOverload           Option = 52 // byte
+	OptServerIdentifier   Option = 54 // IP
+	OptRequestedOptions   Option = 55 // []byte
+	OptMessage            Option = 56 // string
+	OptMaximumMessageSize Option = 57 // uint16
+	OptRenewalTime        Option = 58 // uint32
+	OptRebindingTime      Option = 59 // uint32
+	OptVendorIdentifier   Option = 60 // string
+	OptClientIdentifier   Option = 61 // string
+	OptFQDN               Option = 81 // string
 
 	// You shouldn't need to use the following directly. Instead,
 	// refer to the fields in the Packet struct, and Marshal/Unmarshal
 	// will handle encoding for you.
 
-	OptTFTPServer      = 66 // string
-	OptBootFile        = 67 // string
-	OptDHCPMessageType = 53 // byte
+	OptTFTPServer      Option = 66 // string
+	OptBootFile        Option = 67 // string
+	OptDHCPMessageType Option = 53 // byte
 )
 
 // Options stores DHCP options.
