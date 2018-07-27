@@ -38,6 +38,7 @@ const (
 	OptHostname           Option = 12 // string
 	OptBootFileSize       Option = 13 // uint16
 	OptDomainName         Option = 15 // string
+	OptInterfaceMTU       Option = 26 // uint16
 	OptBroadcastAddr      Option = 28 // IP
 	OptNTPServers         Option = 42 // IP
 	OptVendorSpecific     Option = 43 // []byte
