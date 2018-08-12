@@ -1,12 +1,18 @@
 # Pixiecore
 
-Pixiecore is an all-in-one tool to manage network booting of
-machines. It can be used either as a simple tool for ad-hoc network
-boots, or as a building block of machine management infrastructure.
+Pixiecore is an tool to manage network booting of machines. It can be used
+for simple single shot network boots, or as a building block of machine
+management infrastructure.
 
-[![license](https://img.shields.io/github/license/google/netboot.svg?maxAge=2592000)](https://github.com/google/netboot/blob/master/LICENSE) [![Travis](https://img.shields.io/travis/google/netboot.svg?maxAge=2592000)](https://travis-ci.org/google/netboot)  ![api](https://img.shields.io/badge/api-unstable-red.svg) ![cli](https://img.shields.io/badge/cli-stable-green.svg) [![cli](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/go.universe.tf/netboot/pixiecore)
+[![license](https://img.shields.io/github/license/google/netboot.svg)](https://github.com/google/netboot/blob/master/LICENSE) ![api](https://img.shields.io/badge/api-unstable-red.svg) ![cli](https://img.shields.io/badge/cli-stable-green.svg) [![cli](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/go.universe.tf/netboot/pixiecore)
 
 ![Pixiecore UI](https://cdn.rawgit.com/google/netboot/master/pixiecore/pixiecore-ui.png)
+
+## TL;DR
+
+    pixiecore quick xyz --dhcp-no-bind
+
+Then try to boot another machine from the same network.
 
 ## Why?
 
