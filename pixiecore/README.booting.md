@@ -14,7 +14,9 @@ a capable network card.
 
 The first thing a PXE ROM does is request a configuration through
 DHCP request with additional PXE options set to indicate that it wants
-to netboot. It expects a reply that mirrors some of these options, and
+to netboot (on a lower level it is `DHCPDISCOVER` with
+[Option 60](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol#DHCP_client_vendor_identification)).
+It expects a reply that mirrors some of these options, and
 includes boot instructions in addition to network configuration.
 
 The normal way of providing these options is to edit your DHCP
