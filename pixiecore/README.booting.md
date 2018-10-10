@@ -160,7 +160,7 @@ This is what the whole boot process looks like on the wire.
 
 - **PXE ROM**, a brittle firmware burned into the network card.
 - **DHCP server**, a plain old DHCP server providing network configuration.
-- **Pixieboot**, the Hero and server of ProxyDHCP, PXE, TFTP and HTTP.
+- **Pixiecore**, the Hero and server of ProxyDHCP, PXE, TFTP and HTTP.
 - **iPXE**, an open source [bootloader](http://ipxe.org).
 
 ### Timeline
