@@ -53,7 +53,7 @@ but the quick version is:
 ```shell
 sudo apt-get install -y apt-transport-https
 curl -L https://packagecloud.io/danderson/pixiecore/gpgkey | sudo apt-key add -
-echo "deb https://packagecloud.io/danderson/pixiecore/debian stretch main" >/etc/apt/sources.list.d/pixiecore.list
+echo "deb https://packagecloud.io/danderson/pixiecore/debian stretch main" | sudo tee /etc/apt/sources.list.d/pixiecore.list
 sudo apt-get update
 sudo apt-get install pixiecore
 ```
@@ -68,7 +68,7 @@ package. Please file a bug if you hit problems with this setup.
 Docker and ACI autobuilds are available. They track the latest code
 from this repository.
 
- - Docker image on Docker Hub: [danderson/pixiecore](https://hub.docker.com/r/danderson/pixiecore/)
+ - Docker image on Docker Hub: [pixiecore/pixiecore:master](https://hub.docker.com/r/pixiecore/pixiecore/)
  - Rkt ACI image on Quay.io: [quay.io/pixiecore/pixiecore](https://quay.io/repository/pixiecore/pixiecore)
 
 ## Using Pixiecore in static mode ("I just want to boot a machine")
@@ -161,16 +161,18 @@ access to the host's networking stack. Both Rkt and Docker do this
 with the `--net=host` commandline flag.
 
 ```shell
+## Outdated
 sudo rkt run --net=host \
   --volume images,kind=host,source=/var/images \
   --mount volume=images,target=/image \
   quay.io/pixiecore/pixiecore -- \
     boot /image/coreos_production_pxe.vmlinuz /image/coreos_production_pxe_image.cpio.gz
 
+## Automated build
 sudo docker run \
   --net=host \
   -v .:/image \
-  danderson/pixiecore \
+  pixiecore/pixiecore:master \
     boot /image/coreos_production_pxe.vmlinuz /image/coreos_production_pxe_image.cpio.gz
 ```
 
