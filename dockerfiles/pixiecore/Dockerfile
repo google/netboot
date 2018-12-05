@@ -1,4 +1,4 @@
-FROM alpine:3.6
+FROM alpine:latest
 
 MAINTAINER David Anderson <dave@natulte.net>
 
@@ -16,6 +16,7 @@ RUN set -x;                                                                     
         git                                                                     \
         go                                                                      \
         glide                                                                   \
+        dep                                                                     \
         musl-dev;                                                               \
                                                                                 \
     # Pixiecore assets                                                          \
@@ -40,7 +41,7 @@ RUN set -x;                                                                     
                                                                                 \
     go get -v -d "$NAMESPACE/$REPO/$PKG";                                       \
     cd "$REPO_PATH";                                                            \
-    glide install;                                                              \
+    dep ensure;                                                                 \
     go test $(glide nv);                                                        \
     GOBIN=/usr/local/bin go install -ldflags -s ./"$PKG";                       \
                                                                                 \
