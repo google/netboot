@@ -39,8 +39,6 @@ github.com/spf13/viper v1.0.0/go.mod h1:A8kyI5cUJhb8N+3pkfONlcEcZbueH6nhAm0Fq7Sr
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
-go.universe.tf/netboot v0.0.0-20181010164912-24067fad46fd h1:Wqq7kDlTM2X1b8Eyqdd5+zOFUI+fhVIRiXU6jU5Mva8=
-go.universe.tf/netboot v0.0.0-20181010164912-24067fad46fd/go.mod h1:mkYvCyQbXRHgkdNrBSfVb/sMkVC4CAjs8TlZin1XFyo=
 golang.org/x/crypto v0.0.0-20180206190813-d9133f546934 h1:UbtgwftcdEk1BsxGUZ2PA880WW9HqmwoQn6MKRkNelQ=
 golang.org/x/crypto v0.0.0-20180206190813-d9133f546934/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/net v0.0.0-20180202180947-2fb46b16b8dd h1:sFXnfxrhbeCXDiKa6Ra98LxiHoUWSHs9AKOxFURy5pY=
