@@ -91,11 +91,13 @@ func (p *Packet) txType() txType {
 	case p.RelayAddr != nil && p.RelayAddr.IsGlobalUnicast():
 		return txRelayAddr
 	case p.Type == MsgNack:
-		return txBroadcast
+		return txServerBroadcast
 	case p.ClientAddr != nil && (p.ClientAddr.IsGlobalUnicast() || p.ClientAddr.IsLoopback()):
 		return txClientAddr
+	case p.Broadcast && p.Type == MsgDiscover:
+		return txClientBroadcast
 	case p.Broadcast:
-		return txBroadcast
+		return txServerBroadcast
 	default:
 		return txHardwareAddr
 	}

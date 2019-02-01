@@ -29,14 +29,18 @@ var (
 	dhcpClientPort = 68
 )
 
+const dhcpServerPort = 67
+
 // txType describes how a Packet should be sent on the wire.
 type txType int
 
 // The various transmission strategies described in RFC 2131. "MUST",
 // "MUST NOT", "SHOULD" and "MAY" are as specified in RFC 2119.
 const (
-	// Packet MUST be broadcast.
-	txBroadcast txType = iota
+	// Packet MUST be broadcast from client side.
+	txClientBroadcast txType = iota
+	// Packet MUST be broadcast from server side.
+	txServerBroadcast
 	// Packet MUST be unicasted to port 67 of RelayAddr
 	txRelayAddr
 	// Packet MUST be unicasted to port 68 of ClientAddr
@@ -169,7 +173,13 @@ func (c *Conn) SendDHCP(pkt *Packet, intf *net.Interface) error {
 	}
 
 	switch pkt.txType() {
-	case txBroadcast, txHardwareAddr:
+	case txClientBroadcast:
+		addr := net.UDPAddr{
+			IP:   net.IPv4bcast,
+			Port: dhcpServerPort,
+		}
+		return c.conn.Send(b, &addr, intf.Index)
+	case txServerBroadcast, txHardwareAddr:
 		addr := net.UDPAddr{
 			IP:   net.IPv4bcast,
 			Port: dhcpClientPort,
@@ -178,7 +188,7 @@ func (c *Conn) SendDHCP(pkt *Packet, intf *net.Interface) error {
 	case txRelayAddr:
 		addr := net.UDPAddr{
 			IP:   pkt.RelayAddr,
-			Port: 67,
+			Port: dhcpServerPort,
 		}
 		return c.conn.Send(b, &addr, 0)
 	case txClientAddr:
