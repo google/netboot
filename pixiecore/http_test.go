@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 )
 
@@ -33,8 +32,6 @@ func (b booterFunc) ReadBootFile(id ID) (io.ReadCloser, int64, error) {
 	return nil, -1, errors.New("no")
 }
 func (b booterFunc) WriteBootFile(id ID, r io.Reader) error { return errors.New("no") }
-
-var logSync sync.Mutex
 
 func TestIpxe(t *testing.T) {
 	booter := func(m Machine) (*Spec, error) {

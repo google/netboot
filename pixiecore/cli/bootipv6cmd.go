@@ -2,12 +2,13 @@ package cli
 
 import (
 	"fmt"
+	"net"
+	"strings"
+
 	"github.com/spf13/cobra"
 	"go.universe.tf/netboot/dhcp6"
 	"go.universe.tf/netboot/dhcp6/pool"
 	"go.universe.tf/netboot/pixiecore"
-	"net"
-	"strings"
 )
 
 // pixiecore bootipv6 --listen-addr=2001:db8:f00f:cafe::4/64 --httpboot-url=http://[2001:db8:f00f:cafe::4]/bootx64.efi --ipxe-url=http://[2001:db8:f00f:cafe::4]/script.ipxe
@@ -41,7 +42,6 @@ var bootIPv6Cmd = &cobra.Command{
 
 		if addr == "" {
 			fatalf("Please specify address to bind to")
-		} else {
 		}
 		if ipxeURL == "" {
 			fatalf("Please specify ipxe config file url")

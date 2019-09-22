@@ -2,13 +2,14 @@ package cli
 
 import (
 	"fmt"
+	"net"
+	"strings"
+	"time"
+
 	"github.com/spf13/cobra"
 	"go.universe.tf/netboot/dhcp6"
 	"go.universe.tf/netboot/dhcp6/pool"
 	"go.universe.tf/netboot/pixiecore"
-	"net"
-	"strings"
-	"time"
 )
 
 // pixiecore ipv6api --listen-addr=2001:db8:f00f:cafe::4  --api-request-url=http://[2001:db8:f00f:cafe::4]:8888
@@ -42,7 +43,6 @@ var ipv6ApiCmd = &cobra.Command{
 
 		if addr == "" {
 			fatalf("Please specify address to bind to")
-		} else {
 		}
 		if apiURL == "" {
 			fatalf("Please specify ipxe config file url")

@@ -257,7 +257,7 @@ func (b *apibooter) ReadBootFile(id ID) (io.ReadCloser, int64, error) {
 	}
 	var (
 		ret io.ReadCloser
-		sz  int64 = -1
+		sz  int64
 	)
 	if u.Scheme == "file" {
 		// TODO serveFile
@@ -284,9 +284,9 @@ func (b *apibooter) ReadBootFile(id ID) (io.ReadCloser, int64, error) {
 		}
 
 		ret, sz, err = resp.Body, resp.ContentLength, nil
-	}
-	if err != nil {
-		return nil, -1, err
+		if err != nil {
+			return nil, -1, err
+		}
 	}
 	return ret, sz, nil
 }
