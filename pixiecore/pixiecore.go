@@ -227,7 +227,7 @@ func (s *Server) Serve() error {
 		dhcp.Close()
 		return err
 	}
-	pxe, err := net.ListenPacket("udp", fmt.Sprintf("%s:%d", s.Address, s.PXEPort))
+	pxe, err := net.ListenPacket("udp4", fmt.Sprintf("%s:%d", s.Address, s.PXEPort))
 	if err != nil {
 		dhcp.Close()
 		tftp.Close()
