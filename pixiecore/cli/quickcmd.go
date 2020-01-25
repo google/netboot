@@ -194,6 +194,7 @@ func centosRecipe(parent *cobra.Command) {
 		"5",
 		"6",
 		"7",
+		"8",
 	}
 
 	centosCmd := &cobra.Command{
