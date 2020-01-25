@@ -90,11 +90,12 @@ func ubuntuRecipe(parent *cobra.Command) {
 	versions := []string{
 		"precise",
 		"trusty",
-		"vivid",
-		"wily",
 		"xenial",
-		"yakkety",
-		"zesty",
+		"bionic",
+		"cosmic",
+		"disco",
+		"eoan",
+		"focal",
 	}
 
 	ubuntuCmd := &cobra.Command{
