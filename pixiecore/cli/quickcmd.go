@@ -143,6 +143,7 @@ func fedoraRecipe(parent *cobra.Command) {
 	versions := []string{
 		"29",
 		"30",
+		"31",
 	}
 
 	fedoraCmd := &cobra.Command{
