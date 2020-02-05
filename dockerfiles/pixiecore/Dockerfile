@@ -1,6 +1,6 @@
-FROM alpine:3.6
+FROM alpine:3.11
 
-MAINTAINER David Anderson <dave@natulte.net>
+LABEL MAINTAINER David Anderson <dave@natulte.net>
 
 ARG PIXIECORE_SANDBOX=/tmp/sandbox
 ARG PIXIECORE_CONTEXT="$PIXIECORE_SANDBOX"/context
@@ -15,7 +15,6 @@ RUN set -x;                                                                     
     apk add --virtual .build-deps                                               \
         git                                                                     \
         go                                                                      \
-        glide                                                                   \
         musl-dev;                                                               \
                                                                                 \
     # Pixiecore assets                                                          \
@@ -23,8 +22,6 @@ RUN set -x;                                                                     
     REPO=netboot;                                                               \
     PKG=cmd/pixiecore;                                                          \
                                                                                 \
-    export GOPATH="$PIXIECORE_SANDBOX"/go;                                      \
-    export GLIDE_HOME="$PIXIECORE_SANDBOX";                                     \
                                                                                 \
     NAMESPACE_PATH="$GOPATH/src/$NAMESPACE";                                    \
     REPO_PATH="$NAMESPACE_PATH/$REPO";                                          \
@@ -40,8 +37,6 @@ RUN set -x;                                                                     
                                                                                 \
     go get -v -d "$NAMESPACE/$REPO/$PKG";                                       \
     cd "$REPO_PATH";                                                            \
-    glide install;                                                              \
-    go test $(glide nv);                                                        \
     GOBIN=/usr/local/bin go install -ldflags -s ./"$PKG";                       \
                                                                                 \
     apk del --purge .build-deps;                                                \
