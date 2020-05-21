@@ -145,6 +145,7 @@ func fedoraRecipe(parent *cobra.Command) {
 		"29",
 		"30",
 		"31",
+		"32",
 	}
 
 	fedoraCmd := &cobra.Command{
