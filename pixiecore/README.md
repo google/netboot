@@ -66,7 +66,7 @@ package. Please file a bug if you hit problems with this setup.
 Docker and ACI autobuilds are available. They track the latest code
 from this repository.
 
- - Docker image on Docker Hub: [danderson/pixiecore](https://hub.docker.com/r/danderson/pixiecore/)
+ - Docker image on Docker Hub: [pixiecore/pixiecore](https://hub.docker.com/r/pixiecore/pixiecore/)
  - Rkt ACI image on Quay.io: [quay.io/pixiecore/pixiecore](https://quay.io/repository/pixiecore/pixiecore)
 
 ## Using Pixiecore in static mode ("I just want to boot a machine")
@@ -168,7 +168,7 @@ sudo rkt run --net=host \
 sudo docker run \
   --net=host \
   -v .:/image \
-  danderson/pixiecore \
+  pixiecore/pixiecore \
     boot /image/coreos_production_pxe.vmlinuz /image/coreos_production_pxe_image.cpio.gz
 ```
 
