@@ -48,7 +48,7 @@ ci-config:
 
 .PHONY: update-ipxe
 update-ipxe:
-	EMBED=$(HERE)/pixiecore/boot.ipxe \
+	EMBEDDED_IMAGE=$(HERE)/pixiecore/boot.ipxe \
 	$(MAKE) -C third_party/ipxe/src \
 	bin/ipxe.pxe \
 	bin/undionly.kpxe \
