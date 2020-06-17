@@ -1,3 +1,8 @@
+# netboot/Makefile
+
+THIS := $(abspath $(lastword $(MAKEFILE_LIST)))
+HERE := $(patsubst %/,%,$(dir $(THIS)))
+
 GOCMD:=go
 GOMODULECMD:=GO111MODULE=on go
 
@@ -43,18 +48,15 @@ ci-config:
 
 .PHONY: update-ipxe
 update-ipxe:
-	# rm -rf third_party/ipxe
-	# (cd third_party && git clone git://git.ipxe.org/ipxe.git)
-	# (cd third_party/ipxe && git rev-parse HEAD >COMMIT-ID)
-	# rm -rf third_party/ipxe/.git
-	(cd third_party/ipxe/src &&\
-		make bin/ipxe.pxe bin/undionly.kpxe bin-x86_64-efi/ipxe.efi bin-i386-efi/ipxe.efi EMBED=../../../pixiecore/boot.ipxe)
-	(rm -rf third_party/ipxe/bin && mkdir third_party/ipxe/bin)
-	mv -f third_party/ipxe/src/bin/ipxe.pxe third_party/ipxe/bin/ipxe.pxe
-	mv -f third_party/ipxe/src/bin/undionly.kpxe third_party/ipxe/bin/undionly.kpxe
-	mv -f third_party/ipxe/src/bin-x86_64-efi/ipxe.efi third_party/ipxe/bin/ipxe-x86_64.efi
-	mv -f third_party/ipxe/src/bin-i386-efi/ipxe.efi third_party/ipxe/bin/ipxe-i386.efi
-	go-bindata -o third_party/ipxe/ipxe-bin.go -pkg ipxe -nometadata -nomemcopy -prefix third_party/ipxe/bin/ third_party/ipxe/bin
-	gofmt -s -w third_party/ipxe/ipxe-bin.go
-	rm -rf third_party/ipxe/bin
-	(cd third_party/ipxe/src && make veryclean)
+	EMBED=$(HERE)/pixiecore/boot.ipxe \
+	$(MAKE) -C third_party/ipxe/src \
+	bin/ipxe.pxe \
+	bin/undionly.kpxe \
+	bin-x86_64-efi/ipxe.efi \
+	bin-i386-efi/ipxe.efi
+	go-bindata -o out/ipxe/bindata.go -pkg ipxe -nometadata -nomemcopy \
+	third_party/ipxe/src/bin/ipxe.pxe \
+	third_party/ipxe/src/bin/undionly.kpxe \
+	third_party/ipxe/src/bin-x86_64-efi/ipxe.efi \
+	third_party/ipxe/src/bin-i386-efi/ipxe.efi
+	gofmt -s -w out/ipxe/bindata.go
