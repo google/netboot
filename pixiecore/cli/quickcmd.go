@@ -327,7 +327,7 @@ version defaults to latest, can also be a YYYY.MM.DD iso release version`,
 			}
 
 			httpSrv := fmt.Sprintf("%s/iso/%s", mirror, version)
-			kernel := fmt.Sprintf("%s/arch/boot/%s/vmlinuz", httpSrv, arch)
+			kernel := fmt.Sprintf("%s/arch/boot/%s/vmlinuz-linux", httpSrv, arch)
 			initrd := fmt.Sprintf("%s/arch/boot/%s/archiso.img", httpSrv, arch)
 			cmdline := fmt.Sprintf("archisobasedir=arch archiso_http_srv=%s/ ip=dhcp verify=y net.ifnames=0", httpSrv)
 
