@@ -74,7 +74,7 @@ func (s *Server) handleIpxe(w http.ResponseWriter, r *http.Request) {
 	}
 	arch := Architecture(i)
 	switch arch {
-	case ArchIA32, ArchX64:
+	case ArchIA32, ArchX64, Arm64:
 	default:
 		s.debug("HTTP", "Bad request %q from %s, unknown architecture %q", r.URL, r.RemoteAddr, arch)
 		http.Error(w, "unknown architecture", http.StatusBadRequest)
