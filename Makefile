@@ -49,14 +49,20 @@ ci-config:
 .PHONY: update-ipxe
 update-ipxe:
 	$(MAKE) -C third_party/ipxe/src \
-	EMBED=$(HERE)/pixiecore/boot.ipxe \
-	bin/ipxe.pxe \
-	bin/undionly.kpxe \
-	bin-x86_64-efi/ipxe.efi \
-	bin-i386-efi/ipxe.efi
+		EMBED=$(HERE)/pixiecore/boot.ipxe \
+		bin/ipxe.pxe \
+		bin/undionly.kpxe \
+		bin-x86_64-efi/ipxe.efi \
+		bin-i386-efi/ipxe.efi
+	# Cross compile for aarch64
+	$(MAKE) -C third_party/ipxe/src \
+		CROSS=aarch64-linux-gnu- \
+		EMBED=$(HERE)/pixiecore/boot.ipxe \
+		bin-arm64-efi/ipxe.efi
 	go-bindata -o out/ipxe/bindata.go -pkg ipxe -nometadata -nomemcopy \
-	third_party/ipxe/src/bin/ipxe.pxe \
-	third_party/ipxe/src/bin/undionly.kpxe \
-	third_party/ipxe/src/bin-x86_64-efi/ipxe.efi \
-	third_party/ipxe/src/bin-i386-efi/ipxe.efi
+		third_party/ipxe/src/bin/ipxe.pxe \
+		third_party/ipxe/src/bin/undionly.kpxe \
+		third_party/ipxe/src/bin-x86_64-efi/ipxe.efi \
+		third_party/ipxe/src/bin-i386-efi/ipxe.efi \
+		third_party/ipxe/src/bin-arm64-efi/ipxe.efi
 	gofmt -s -w out/ipxe/bindata.go
