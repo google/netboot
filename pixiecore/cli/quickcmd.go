@@ -41,6 +41,7 @@ func debianRecipe(parent *cobra.Command) {
 		"wheezy",
 		"jessie",
 		"stretch",
+		"buster",
 		"sid",
 	}
 
