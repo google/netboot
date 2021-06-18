@@ -115,8 +115,15 @@ func (s *Server) validateDHCP(pkt *dhcp4.Packet) (mach Machine, fwtype Firmware,
 	case 9:
 		mach.Arch = ArchX64
 		fwtype = FirmwareEFIBC
+	case 11:
+		// Not in the original rfc, but in
+		// https://www.ietf.org/assignments/dhcpv6-parameters/dhcpv6-parameters.xml#processor-architecture
+		// In practice, used by edk2
+		// https://github.com/tianocore/edk2/blob/ef5dcba975ee3b4c29b19ad0b23d371a2cd9d60a/MdePkg/Include/IndustryStandard/Dhcp.h#L258-L272
+		mach.Arch = Arm64
+		fwtype = FirmwareEFIArm64
 	default:
-		return mach, 0, fmt.Errorf("unsupported client firmware type '%d' (please file a bug!)", fwtype)
+		return mach, 0, fmt.Errorf("unsupported client firmware type '%d' (please file a bug!)", fwt)
 	}
 
 	// Now, identify special sub-breeds of client firmware based on
@@ -210,7 +217,7 @@ func (s *Server) offerDHCP(pkt *dhcp4.Packet, mach Machine, serverIP net.IP, fwt
 		resp.Options[43] = bs
 		resp.BootFilename = fmt.Sprintf("tftp://%s/%s/%d", serverIP, mach.MAC, fwtype)
 
-	case FirmwareEFI32, FirmwareEFI64, FirmwareEFIBC:
+	case FirmwareEFI32, FirmwareEFI64, FirmwareEFIBC, FirmwareEFIArm64:
 		// In theory, the response we send for FirmwareX86PC should
 		// also work for EFI. However, some UEFI firmwares don't
 		// support PXE properly, and will ignore ProxyDHCP responses
