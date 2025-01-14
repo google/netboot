@@ -5,3 +5,4 @@ pcap/pcap.test
 pixiecore/pixiecore.test
 vendor/
 build/
+artifacts/ipxe/
