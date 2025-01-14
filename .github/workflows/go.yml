@@ -1,0 +1,40 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        fetch-tags: 'true'
+        fetch-depth: 0
+
+    - name: Fetch submodule tags
+      run: git submodule foreach --recursive 'git fetch --tags'
+
+    - name: Install Apt Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install liblzma-dev
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23.x'
+
+    - name: Update ipxe
+      run: make update-ipxe
+
+    - name: Build
+      run: make build

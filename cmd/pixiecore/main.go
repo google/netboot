@@ -15,17 +15,25 @@
 package main
 
 import (
-	"go.universe.tf/netboot/out/ipxe"
+	"github.com/levigross/netboot/artifacts"
 	"go.universe.tf/netboot/pixiecore"
 	"go.universe.tf/netboot/pixiecore/cli"
 )
 
+func mustRead(filename string) []byte {
+	f, err := artifacts.Content.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+
 func main() {
 
-	cli.Ipxe[pixiecore.FirmwareX86PC] = ipxe.MustAsset("third_party/ipxe/src/bin/undionly.kpxe")
-	cli.Ipxe[pixiecore.FirmwareEFI32] = ipxe.MustAsset("third_party/ipxe/src/bin-i386-efi/ipxe.efi")
-	cli.Ipxe[pixiecore.FirmwareEFI64] = ipxe.MustAsset("third_party/ipxe/src/bin-x86_64-efi/ipxe.efi")
-	cli.Ipxe[pixiecore.FirmwareEFIBC] = ipxe.MustAsset("third_party/ipxe/src/bin-x86_64-efi/ipxe.efi")
-	cli.Ipxe[pixiecore.FirmwareX86Ipxe] = ipxe.MustAsset("third_party/ipxe/src/bin/ipxe.pxe")
+	cli.Ipxe[pixiecore.FirmwareX86PC] = mustRead("ipxe/bin/undionly.kpxe")
+	cli.Ipxe[pixiecore.FirmwareEFI32] = mustRead("ipxe/bin-i386-efi/ipxe.efi")
+	cli.Ipxe[pixiecore.FirmwareEFI64] = mustRead("ipxe/bin-x86_64-efi/ipxe.efi")
+	cli.Ipxe[pixiecore.FirmwareEFIBC] = mustRead("ipxe/bin-x86_64-efi/ipxe.efi")
+	cli.Ipxe[pixiecore.FirmwareX86Ipxe] = mustRead("ipxe/bin/ipxe.pxe")
 	cli.CLI()
 }
