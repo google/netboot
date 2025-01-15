@@ -14,8 +14,9 @@ all:
 	$(error Please request a specific thing, there is no default target)
 
 .PHONY: build
-build:
-	$(GOCMD) install -v ./cmd/pixiecore
+build: update-ipxe
+	mkdir -p build/
+	$(GOCMD) build ./cmd/pixiecore -o build/
 
 .PHONY: test
 test:
