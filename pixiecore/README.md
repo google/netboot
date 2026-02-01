@@ -51,7 +51,7 @@ but the quick version is:
 ```shell
 sudo apt-get install -y apt-transport-https
 curl -L https://packagecloud.io/danderson/pixiecore/gpgkey | sudo apt-key add -
-echo "deb https://packagecloud.io/danderson/pixiecore/debian stretch main" >/etc/apt/sources.list.d/pixiecore.list
+echo "deb https://packagecloud.io/danderson/pixiecore/debian stretch main" | sudo tee /etc/apt/sources.list.d/pixiecore.list
 sudo apt-get update
 sudo apt-get install pixiecore
 ```
